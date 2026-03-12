@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Nutrition Tracker</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="dashboard-body">
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-brand">
+          <h1>
+            <i class="fas fa-heartbeat"></i> Nutrition Tracker - Admin Portal
+          </h1>
+          <div class="navbar-links">
+            <a href="dashboard.html" class="active">All Users</a>
+            <a href="dashboard.html?tab=daily">Daily Reports</a>
+            <a href="index.html">Homepage</a>
+          </div>
+        </div>
+        <div style="margin-left: auto; padding-left: 3rem">
+          <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="page-header">
+        <h2>Admin Dashboard - Patient Monitoring</h2>
+        <p style="color: #6b7280; margin-top: 0.5rem">
+          View and manage all users, perform CRUD operations
+        </p>
+      </div>
+
+      <div class="tabs">
+        <a id="dailyTabLink" href="dashboard.html?tab=daily" class="tab-link"
+          >Daily</a
+        >
+        <a
+          id="patientsTabLink"
+          href="dashboard.html?tab=patients"
+          class="tab-link"
+          >Patients</a
+        >
+      </div>
+
+      <div id="dailyPanel" class="hidden">
+        <div class="daily-summary-card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.75rem; color: #1f2937">
+            Latest Submitted Meal (Daily)
+          </h3>
+          <p id="dailyMeta" style="margin-bottom: 0.75rem; color: #4b5563"></p>
+          <pre id="dailyJsonPreview" class="json-preview"></pre>
+        </div>
+      </div>
+
+      <div id="patientsPanel">
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <p>Loading data...</p>
+        </div>
+
+        <div id="error" class="alert alert-error hidden"></div>
+
+        <div class="table-card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Last Meal</th>
+                <th>Calories</th>
+                <th>Carbs</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/dashboard.js"></script>
+  </body>
+</html>
