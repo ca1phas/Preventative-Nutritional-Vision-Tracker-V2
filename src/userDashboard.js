@@ -86,6 +86,9 @@ function loadDashboardData() {
         document.getElementById('dailyCarbs').textContent = MOCK_DAILY_SUMMARY.carbs;
         document.getElementById('dailyFats').textContent = MOCK_DAILY_SUMMARY.fats;
 
+        updateOverallStatus(MOCK_DAILY_SUMMARY.carbs);
+        renderNutritionChart();
+
         // Load insights
         loadInsights();
     } else {
@@ -140,3 +143,66 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // ===== INITIALIZE =====
 loadDashboardData();
+
+// overall status
+function updateOverallStatus(avgCarbs) {
+    const statusContainer = document.getElementById('overallUserStatus');
+    if (!statusContainer) return;
+
+    if (avgCarbs > 150) {
+        statusContainer.className = 'status-banner intervention';
+        statusContainer.innerHTML = '<i class="fas fa-exclamation-triangle"></i> OVERALL STATUS: Intervention Needed (High Risk)';
+    } else if (avgCarbs > 80) {
+        statusContainer.className = 'status-banner warning';
+        statusContainer.innerHTML = '<i class="fas fa-exclamation-circle"></i> OVERALL STATUS: Warning (Moderate Risk)';
+    } else {
+        statusContainer.className = 'status-banner healthy';
+        statusContainer.innerHTML = '<i class="fas fa-check-circle"></i> OVERALL STATUS: Healthy (Good Management)';
+    }
+}
+
+//
+function renderNutritionChart() {
+    const ctx = document.getElementById('nutritionTrendChart');
+    if (!ctx) return;
+
+    if(window.myNutritionChart) {
+        window.myNutritionChart.destroy();
+    }
+
+    window.myNutritionChart = new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [
+                {
+                    label: 'Calories (kcal)',
+                    data: [1600, 1850, 1480, 2100, 1650, 2450, 1750], // Mock Data
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Carbs (g)',
+                    data: [140, 190, 120, 210, 195, 260, 130], // Mock Data
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}

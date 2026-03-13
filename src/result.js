@@ -110,8 +110,7 @@ if (viewingUserID) {
     const navbar = document.querySelector('.navbar-brand .navbar-links');
     if (navbar) {
         navbar.innerHTML = `
-            <a href="dashboard.html?tab=patients">Admin Dashboard</a>
-            <a href="dashboard.html?tab=daily">Daily Reports</a>
+            <a href="dashboard.html?tab=patients" style="padding: 0.5rem 1rem;">View All Users</a>
         `;
     }
 
