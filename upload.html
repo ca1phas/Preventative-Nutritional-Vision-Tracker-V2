@@ -69,5 +69,19 @@
         </div>
       </div>
     </div>
+    <div id="profilePromptModal" class="meal-modal-overlay hidden" style="z-index: 2000;">
+    <div class="meal-modal" style="padding: 2.5rem; text-align: center;">
+      <h3 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem;">
+        <i class="fas fa-exclamation-circle"></i> Profile Incomplete
+      </h3>
+      <p style="margin-bottom: 2rem; color: #4b5563;">
+        Please complete your user profile before analyzing a meal.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="userProfile.html" class="btn btn-primary" style="text-decoration: none;">Go to Profile</a>
+        <button onclick="document.getElementById('profilePromptModal').classList.add('hidden')" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
   </body>
 </html>

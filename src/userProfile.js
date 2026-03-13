@@ -83,6 +83,9 @@ document.getElementById('profileForm').addEventListener('submit', (e) => {
 
     if (USE_MOCK_DATA) {
         // Simulate save
+        sessionStorage.setItem('mockUserProfile', JSON.stringify(profileData));
+        sessionStorage.setItem('profileComplete', 'true');
+
         alert('Profile saved successfully! (Mock mode - data not persisted)');
         console.log('Profile data:', profileData);
     } else {
