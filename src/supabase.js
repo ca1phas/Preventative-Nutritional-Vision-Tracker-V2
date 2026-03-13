@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize with Vite environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+console.log('ENV CHECK:', import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -31,9 +32,9 @@ export async function authenticateUser(email, password) {
     };
 }
 
-export async function logoutUser() {
+export const logoutUser = async () => {
     await supabase.auth.signOut();
-}
+};
 
 // ==========================================
 // USERS CRUD

@@ -15,25 +15,31 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
   try {
     // Call the Supabase helper function
-    const { isAdmin } = await authenticateUser(email, password);
+    const { user, isAdmin } = await authenticateUser(email, password);
+
+    // Always store the user ID
+    sessionStorage.setItem('userID', user.id);
 
     const pendingRole = sessionStorage.getItem('pendingRole');
     sessionStorage.removeItem('pendingRole');
 
     // Route based on actual database role
     if (isAdmin) {
-      // Admin user — redirect to admin dashboard
+      // Admin user — set admin flag and redirect to admin dashboard
+      sessionStorage.setItem('isAdminAuthenticated', 'true');
       window.location.href = 'dashboard.html?tab=patients';
     } else if (pendingRole === 'admin') {
       // Tried to access admin portal but they do not have the is_admin flag
+      sessionStorage.removeItem('userID');
       errorMsg.textContent = 'You do not have admin access.';
       errorMsg.style.display = 'block';
       loginBtn.textContent = 'Login';
       loginBtn.disabled = false;
       await logoutUser();
     } else {
-      // Regular user — redirect to the homepage
-      window.location.href = 'index.html';
+      // Regular user — set user flag and redirect to user dashboard
+      sessionStorage.setItem('isUserAuthenticated', 'true');
+      window.location.href = 'user-dashboard.html';
     }
 
   } catch (error) {
