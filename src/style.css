@@ -2354,7 +2354,8 @@ body.homepage {
 
 
 /* output */
-.container {
+.container-output
+ {
   max-width: 850px;
   margin: auto;
   background: #fff;
