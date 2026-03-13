@@ -1,4 +1,3 @@
-import './style.css';
 import localforage from 'localforage';
 import { getUserProfile, getUserMeals, updateMeal, updateUserProfile } from './supabase.js';
 import { generateAIAssessment } from './ai-service.js';

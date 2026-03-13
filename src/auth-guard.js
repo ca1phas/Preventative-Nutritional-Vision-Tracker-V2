@@ -1,4 +1,3 @@
-// src/auth-guard.js
 import { supabase, logoutUser } from './supabase.js';
 
 const publicPages = ['/login.html', '/index.html', '/'];

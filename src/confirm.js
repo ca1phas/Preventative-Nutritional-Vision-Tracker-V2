@@ -1,5 +1,4 @@
 import localforage from 'localforage';
-import './style.css';
 import { searchUSDA, mapToNutritionSchema } from './ai-service.js';
 import { logCompleteMeal, uploadMealImage } from './supabase.js';
 import { getCurrentUser } from './auth-guard.js';

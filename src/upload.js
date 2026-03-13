@@ -1,4 +1,3 @@
-import './style.css';
 import { analyzeFoodImage } from './ai-service.js';
 
 const uploadForm = document.getElementById('uploadForm');

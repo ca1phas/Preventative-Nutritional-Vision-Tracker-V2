@@ -1,4 +1,3 @@
-import './style.css';
 import { authenticateUser, logoutUser } from './supabase.js';
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {

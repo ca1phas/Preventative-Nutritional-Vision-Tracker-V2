@@ -1,4 +1,3 @@
-import './style.css';
 import { supabase } from './supabase.js';
 
 // Admin auth check — uses is_admin flag from users table

@@ -1,5 +1,3 @@
-import './style.css';
-
 const HISTORY_STORAGE_KEY = 'userMealHistory';
 const DEFAULT_MEAL_IMAGE = '/images/hero-background.jpg';
 
@@ -20,7 +18,7 @@ checkUserAuth();
 const currentUser = sessionStorage.getItem('userID') || 'DEMO_USER';
 const historyUserDisplay = document.getElementById('historyUserDisplay');
 const historyDateFilter = document.getElementById('historyDateFilter');
-const historyDateClear  = document.getElementById('historyDateClear');
+const historyDateClear = document.getElementById('historyDateClear');
 const historyCards = document.getElementById('historyCards');
 const historyEmptyState = document.getElementById('historyEmptyState');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -46,7 +44,7 @@ const demoHistoryData = [
     image: { dataUrl: DEFAULT_MEAL_IMAGE },
     status: 'warning',
   },
-  
+
 ];
 
 initializeHistoryPage();
@@ -58,22 +56,22 @@ logoutBtn.addEventListener('click', () => {
 });
 
 // ── Modal wiring ──────────────────────────────────────────
-const mealModal       = document.getElementById('mealModal');
-const mealModalClose  = document.getElementById('mealModalClose');
-const mealModalImage  = document.getElementById('mealModalImage');
-const mealModalDate   = document.getElementById('mealModalDate');
-const mealModalTime   = document.getElementById('mealModalTime');
+const mealModal = document.getElementById('mealModal');
+const mealModalClose = document.getElementById('mealModalClose');
+const mealModalImage = document.getElementById('mealModalImage');
+const mealModalDate = document.getElementById('mealModalDate');
+const mealModalTime = document.getElementById('mealModalTime');
 const mealModalStatus = document.getElementById('mealModalStatus');
 
 function openMealModal(record) {
   const imageSrc = record.image?.dataUrl || record.image?.url || DEFAULT_MEAL_IMAGE;
-  const dateKey  = toDateKey(record.datetime);
+  const dateKey = toDateKey(record.datetime);
 
-  mealModalImage.src           = imageSrc;
-  mealModalDate.textContent    = formatDateLabel(dateKey);
-  mealModalTime.textContent    = formatTime24(record.datetime);
-  mealModalStatus.textContent  = statusLabel(record.status);
-  mealModalStatus.className    = `history-status-btn status-${record.status}`;
+  mealModalImage.src = imageSrc;
+  mealModalDate.textContent = formatDateLabel(dateKey);
+  mealModalTime.textContent = formatTime24(record.datetime);
+  mealModalStatus.textContent = statusLabel(record.status);
+  mealModalStatus.className = `history-status-btn status-${record.status}`;
 
   mealModal.classList.remove('hidden');
   document.body.classList.add('modal-open');
