@@ -9,17 +9,10 @@ if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
 }
 
 const USE_MOCK_DATA = true;
-const currentTab = new URLSearchParams(window.location.search).get('tab') || 'patients';
 
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 const tableBody = document.getElementById('userTableBody');
-const dailyTabLink = document.getElementById('dailyTabLink');
-const patientsTabLink = document.getElementById('patientsTabLink');
-const dailyPanel = document.getElementById('dailyPanel');
-const patientsPanel = document.getElementById('patientsPanel');
-const dailyMeta = document.getElementById('dailyMeta');
-const dailyJsonPreview = document.getElementById('dailyJsonPreview');
 
 // Mock data for testing
 const MOCK_USERS = [
@@ -36,39 +29,6 @@ function getStatusBadge(status) {
     if (statusLower === 'warning') return '<span class="badge badge-warning">🟡 Warning</span>';
     if (statusLower === 'intervention') return '<span class="badge badge-intervention">🔴 Intervention</span>';
     return '<span class="badge">Unknown</span>';
-}
-
-function initTabs() {
-    if (currentTab === 'daily') {
-        dailyTabLink.classList.add('active');
-        patientsTabLink.classList.remove('active');
-        dailyPanel.classList.remove('hidden');
-        patientsPanel.classList.add('hidden');
-        renderDailyPanel();
-        return;
-    }
-
-    patientsTabLink.classList.add('active');
-    dailyTabLink.classList.remove('active');
-    patientsPanel.classList.remove('hidden');
-    dailyPanel.classList.add('hidden');
-    loadDashboard();
-}
-
-function renderDailyPanel() {
-    // THIS GRABS THE LIVE GEMINI DATA YOU JUST GENERATED!
-    const lastSubmittedRecord = JSON.parse(sessionStorage.getItem('lastSubmittedRecord') || 'null');
-
-    if (!lastSubmittedRecord) {
-        dailyMeta.textContent = 'No meal record submitted yet in this browser session.';
-        dailyJsonPreview.textContent = JSON.stringify({
-            message: 'Submit a meal from Upload -> Confirm to view daily JSON here.'
-        }, null, 2);
-        return;
-    }
-
-    dailyMeta.textContent = `User: ${lastSubmittedRecord.userID} | Submitted: ${new Date(lastSubmittedRecord.datetime).toLocaleString()}`;
-    dailyJsonPreview.textContent = JSON.stringify(lastSubmittedRecord, null, 2);
 }
 
 async function loadDashboard() {
@@ -109,4 +69,4 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
-initTabs();
+loadDashboard();

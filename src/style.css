@@ -2745,13 +2745,13 @@ table {
   background: #f3f4f6;
 }
 
-th {
+.table-container th {
   background: #f3f4f6;
   text-align: left;
   padding: 10px;
 }
 
-td {
+.table-container td {
   padding: 10px;
   border-bottom: 1px solid #e5e7eb;
 }
