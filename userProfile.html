@@ -58,7 +58,7 @@
             <div class="form-grid">
               <div class="form-group">
                 <label for="userName"
-                  ><i class="fas fa-user"></i> Full Name</label
+                  ><i class="fas fa-user"></i> Full Name <span style="color: red; font-size: 20px;">*</span></label
                 >
                 <input
                   type="text"
@@ -70,7 +70,7 @@
 
               <div class="form-group">
                 <label for="userAge"
-                  ><i class="fas fa-birthday-cake"></i> Age</label
+                  ><i class="fas fa-birthday-cake"></i> Age <span style="color: red; font-size: 20px;">*</span></label
                 >
                 <input
                   type="number"
@@ -84,7 +84,7 @@
 
               <div class="form-group">
                 <label for="userGender"
-                  ><i class="fas fa-venus-mars"></i> Gender</label
+                  ><i class="fas fa-venus-mars"></i> Gender <span style="color: red; font-size: 20px;">*</span></label
                 >
                 <select id="userGender" required>
                   <option value="">Select gender</option>
@@ -96,7 +96,7 @@
 
               <div class="form-group">
                 <label for="userWeight"
-                  ><i class="fas fa-weight"></i> Weight (kg)</label
+                  ><i class="fas fa-weight"></i> Weight (kg) <span style="color: red; font-size: 20px;">*</span></label
                 >
                 <input
                   type="number"
@@ -110,7 +110,7 @@
 
               <div class="form-group">
                 <label for="userHeight"
-                  ><i class="fas fa-ruler-vertical"></i> Height (cm)</label
+                  ><i class="fas fa-ruler-vertical"></i> Height (cm) <span style="color: red; font-size: 20px;">*</span></label
                 >
                 <input
                   type="number"
@@ -137,11 +137,12 @@
 
             <div class="form-group">
               <label for="medicalNotes"
-                ><i class="fas fa-notes-medical"></i> Medical Notes</label
+                ><i class="fas fa-notes-medical"></i> Medical Notes (If don't have put "None") <span style="color: red; font-size: 20px;">*</span></label
               >
               <textarea
                 id="medicalNotes"
                 rows="4"
+                required
                 placeholder="Enter any medical conditions, allergies, or dietary restrictions"
               ></textarea>
             </div>
