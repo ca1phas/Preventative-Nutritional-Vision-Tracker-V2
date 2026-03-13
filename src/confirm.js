@@ -198,7 +198,19 @@ confirmBtn.addEventListener('click', async () => {
             image: uploadedImage,
             food_items: ingredients,
             nutrition_data: finalNutritionData
-        }));
+        };
+
+        // Save to session storage for the results page to read
+        // sessionStorage.setItem('lastSubmittedRecord', JSON.stringify(payload));
+
+        try {
+            await localforage.setItem('lastSubmittedRecord', recordData);
+            // Note: localforage automatically handles JSON stringifying/parsing!
+        } catch (err) {
+            console.error("Error saving data:", err);
+        }
+
+        // (Optional: You can add your Supabase insert code here later!)
 
         success.textContent = 'Meal saved successfully!';
         success.classList.remove('hidden');
