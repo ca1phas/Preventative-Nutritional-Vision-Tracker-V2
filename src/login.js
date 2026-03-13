@@ -21,7 +21,7 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
   ) {
     sessionStorage.setItem('userID', userID);
     sessionStorage.setItem('isUserAuthenticated', 'true');
-    window.location.href = 'user-dashboard.html';
+    window.location.href = 'userProfile.html';
   } else {
     alert('Invalid user ID or password. Please try again.');
   }

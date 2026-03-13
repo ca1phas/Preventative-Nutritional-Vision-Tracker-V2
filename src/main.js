@@ -76,7 +76,7 @@ document.getElementById('userRole')?.addEventListener('click', (e) => {
   if (VALID_USERS.hasOwnProperty(username) && VALID_USERS[username] === inputPassword) {
     sessionStorage.setItem('userID', username);
     sessionStorage.setItem('isUserAuthenticated', 'true');
-    window.location.href = 'user-dashboard.html';
+    window.location.href = 'userProfile.html';
   } else {
     sessionStorage.removeItem('userID');
     sessionStorage.removeItem('isUserAuthenticated');
