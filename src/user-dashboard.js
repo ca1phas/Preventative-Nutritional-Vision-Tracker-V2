@@ -3,8 +3,8 @@ import { supabase } from './supabase.js';
 
 // ===== AUTH CHECK =====
 function checkUserAuth() {
-    if (!sessionStorage.getItem('isUserAuthenticated')) {
-        window.location.href = 'login.html';
+    if (sessionStorage.getItem('isUserAuthenticated') !== 'true') {
+        window.location.href = 'index.html';
     }
 }
 checkUserAuth();
@@ -42,9 +42,34 @@ function showPanel(panelToShow) {
     }
 }
 
-profileTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('profile'); });
-dashboardTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('dashboard'); });
-historyTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('history'); });
+profileTab.addEventListener('click', (e) => {
+    if (profileTab.getAttribute('href') === '#') {
+        e.preventDefault();
+        showPanel('profile');
+    }
+});
+
+dashboardTab.addEventListener('click', (e) => {
+    if ((dashboardTab.getAttribute('href') || '').startsWith('#')) {
+        e.preventDefault();
+        showPanel('dashboard');
+    }
+});
+
+historyTab.addEventListener('click', (e) => {
+    if ((historyTab.getAttribute('href') || '').startsWith('#')) {
+        e.preventDefault();
+        showPanel('history');
+    }
+});
+
+// Optional hash routing for quick navigation from the header.
+const panelFromHash = window.location.hash.replace('#', '').toLowerCase();
+if (panelFromHash === 'dashboard') {
+    showPanel('dashboard');
+} else if (panelFromHash === 'history') {
+    showPanel('history');
+}
 
 // ===== PROFILE =====
 async function loadUserProfile() {
@@ -331,7 +356,9 @@ function getStatusBadge(status) {
 
 // ===== LOGOUT =====
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.clear();
+    sessionStorage.removeItem('isUserAuthenticated');
+    sessionStorage.removeItem('userID');
+    localStorage.removeItem('userID');
     window.location.href = 'index.html';
 });
 

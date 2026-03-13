@@ -599,6 +599,338 @@ body {
   color: #6b21a8;
 }
 
+/* History Page */
+.history-subtitle {
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.history-user {
+  color: #64748b;
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+
+.history-filter-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.history-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.history-filter-label {
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 80px;
+}
+
+.history-filter-select {
+  min-width: 220px;
+  padding: 0.7rem 0.85rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  color: #374151;
+  background: white;
+}
+
+.history-filter-select:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.14);
+}
+
+.history-date-clear-btn {
+  padding: 0.7rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-date-clear-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.history-cards-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-date-group {
+  margin-bottom: 0.25rem;
+}
+
+.history-date-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-date-heading i {
+  color: #64748b;
+}
+
+.history-date-separator {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.25rem 0;
+}
+
+.history-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.history-meal-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid #edf0f3;
+}
+
+.history-card-image-wrap {
+  height: 180px;
+  background: #f3f4f6;
+}
+
+.history-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history-card-content {
+  padding: 0.95rem;
+}
+
+.history-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+.history-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.history-status-btn {
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.38rem 0.82rem;
+  cursor: default;
+}
+
+.history-status-btn.status-healthy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.history-status-btn.status-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.history-status-btn.status-intervention {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.history-empty {
+  background: white;
+  border: 1px dashed #d1d5db;
+  border-radius: 14px;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  margin-top: 1rem;
+}
+
+.history-empty i {
+  font-size: 1.6rem;
+  color: #9ca3af;
+  margin-bottom: 0.7rem;
+}
+
+.history-empty h3 {
+  color: #374151;
+  margin-bottom: 0.4rem;
+}
+
+/* Card hover overlay hint */
+.history-meal-card {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.history-meal-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+}
+
+.history-card-image-wrap {
+  position: relative;
+}
+
+.history-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  color: white;
+  font-size: 1.4rem;
+}
+
+.history-meal-card:hover .history-card-overlay {
+  opacity: 1;
+}
+
+/* Meal Detail Modal */
+.meal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeInOverlay 0.18s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.meal-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUpModal 0.2s ease;
+}
+
+@keyframes slideUpModal {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.meal-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+.meal-modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.meal-modal-image-wrap {
+  width: 100%;
+  height: 260px;
+  background: #f3f4f6;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.meal-modal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.meal-modal-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.meal-modal-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.meal-modal-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.meal-modal-status-row {
+  margin-bottom: 1rem;
+}
+
+.meal-modal-details {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+  min-height: 60px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
 /* Utility Classes */
 .hidden {
   display: none !important;
@@ -916,6 +1248,22 @@ body {
 
   .nutrition-card p:last-child {
     font-size: 1.5rem;
+  }
+
+  .history-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .history-filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .history-meta-row {
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   /* Ingredient Rows - Mobile */
@@ -2350,4 +2698,98 @@ body.homepage {
   .page-header h2 {
     font-size: 1.5rem;
   }
+}
+
+
+/* output */
+.container-output
+ {
+  max-width: 850px;
+  margin: auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+h1 {
+  margin-top: 0;
+  color: #1f2937;
+}
+
+.meal-info p {
+  margin: 6px 0;
+  font-size: 1.25rem;
+}
+
+.divider {
+  margin: 1.5rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container {
+  max-height: 320px; 
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background: #f3f4f6;
+}
+
+th {
+  background: #f3f4f6;
+  text-align: left;
+  padding: 10px;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.summary {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-left: 5px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 1.1rem;
+}
+
+.back-btn {
+  margin-top: 1.5rem;
+  padding: 10px 18px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: #2563eb;
+}
+
+
+.meal-image {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.meal-image img {
+    max-width: 420px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    object-fit: cover;
 }
