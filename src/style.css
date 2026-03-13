@@ -2708,9 +2708,9 @@ body.homepage {
 
 /* output */
 .container-output
- {
+{
   max-width: 850px;
-  margin: auto;
+  margin: 2rem auto;
   background: #fff;
   padding: 2rem;
   border-radius: 12px;

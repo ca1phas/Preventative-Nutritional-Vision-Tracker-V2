@@ -36,8 +36,8 @@ const uploadedImage = JSON.parse(sessionStorage.getItem("uploadedImage"));
 if (uploadedImage && uploadedImage.dataUrl) {
 
     const imgHTML = `
-        <img 
-        src="${uploadedImage.dataUrl}" 
+        <img
+        src="${uploadedImage.dataUrl}"
         alt="Uploaded Meal"
         style="max-width:400px;border-radius:10px;margin-bottom:20px;"
         >
@@ -115,47 +115,44 @@ const tbody = document.querySelector("#nutritionTable tbody");
 
 Object.keys(nutrientLabels).forEach(key => {
 
-  const value = data[key];
+    const value = data[key];
 
-  // Skip null / undefined
-  if (value === null || value === undefined || value === "" || value === 0) return;
+    // Skip null / undefined
+    if (value === null || value === undefined || value === "") return;
 
-  const label = nutrientLabels[key];
+    const label = nutrientLabels[key];
 
-  const row = `
-    <tr>
-      <td>${label}</td>
-      <td>${value}</td>
-    </tr>
-  `;
+    const row = `
+        <tr>
+        <td>${label}</td>
+        <td>${value}</td>
+        </tr>
+    `;
 
-  tbody.innerHTML += row;
+    tbody.innerHTML += row;
 });
 
 
-// ======================================
-// SIMPLE AI ASSESSMENT
-// ======================================
 
+// ai text summary
 let text = "";
 
 if (data.calories_kcal > 700)
-  text += "This meal is high in calories. ";
+    text += "This meal is high in calories. ";
 else if (data.calories_kcal > 400)
-  text += "This meal has a moderate calorie level. ";
+    text += "This meal has a moderate calorie level. ";
 else text += "This meal is relatively low in calories. ";
 
 if (data.protein_g > 25)
-  text += "It provides a good amount of protein. ";
+    text += "It provides a good amount of protein. ";
 
 if (data.total_fat_g > 20)
-  text += "Fat content is relatively high. ";
+    text += "Fat content is relatively high. ";
 
 if (data.sodium_mg > 600)
-  text += "Sodium intake is high and should be monitored. ";
+    text += "Sodium intake is high and should be monitored. ";
 
-text +=
-  "Overall, this meal can be part of a balanced diet depending on individual needs.";
+    text +=
+    "Overall, this meal can be part of a balanced diet depending on individual needs.";
 
-document.getElementById("aiSummary").innerHTML =
-  "<strong>AI Nutrition Assessment:</strong><br>" + text;
+    document.getElementById("aiSummary").innerHTML = "<strong>AI Nutrition Assessment:</strong><br>" + text;

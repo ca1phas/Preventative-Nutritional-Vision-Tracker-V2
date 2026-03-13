@@ -143,8 +143,8 @@ confirmBtn.addEventListener('click', async () => {
         success.textContent = 'AI Analysis complete!';
         success.classList.remove('hidden');
 
-        // Redirect to result/dashboard page
-        window.location.href = 'dashboard.html?tab=daily';
+        // Redirect to output page
+        window.location.href = 'output.html';
 
     } catch (err) {
         console.error("Analysis Error:", err);
