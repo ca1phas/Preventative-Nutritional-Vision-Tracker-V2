@@ -4,7 +4,9 @@ import {
     foodNutritionSchema,
     analyzeSystemInstruction,
     mapSystemInstruction,
-    getMapPrompt
+    getMapPrompt,
+    assessmentSchema,
+    assessmentSystemInstruction
 } from './ai-config.js';
 
 // Initialize with Vite environment variable
@@ -70,6 +72,34 @@ export async function mapToNutritionSchema(foodItem, usdaResults) {
             responseMimeType: "application/json",
             responseSchema: foodNutritionSchema,
             temperature: 0.1
+        }
+    });
+
+    return JSON.parse(response.text);
+}
+
+export async function generateAIAssessment(userProfile, currentMeal, pastTwoWeeksMeals) {
+    const prompt = `
+    --- PATIENT PROFILE ---
+    ${JSON.stringify(userProfile, null, 2)}
+
+    --- CURRENT MEAL TO EVALUATE ---
+    ${JSON.stringify(currentMeal, null, 2)}
+
+    --- PATIENT 14-DAY MEAL HISTORY ---
+    ${JSON.stringify(pastTwoWeeksMeals, null, 2)}
+    
+    Provide the assessment and calculate the status codes.
+    `;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            systemInstruction: assessmentSystemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: assessmentSchema,
+            temperature: 0.2 // Keep temperature low for clinical consistency
         }
     });
 

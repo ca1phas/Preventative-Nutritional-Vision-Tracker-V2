@@ -174,3 +174,38 @@ If you do not have enough data in your training set to confidently estimate a sp
 Only output 0 if the USDA database explicitly lists the value as 0 or you are certain the estimated value is zero.
 `;
 }
+
+// ==========================================
+// ASSESSMENT AI CONFIG
+// ==========================================
+export const assessmentSchema = {
+    "type": "object",
+    "description": "The final health assessment of the meal and the user's 14-day trend.",
+    "properties": {
+        "meal_assessment_text": {
+            "type": "string",
+            "description": "A short, empathetic, yet direct nutritional assessment of the current meal."
+        },
+        "meal_status": {
+            "type": "integer",
+            "description": "Must be exactly 0, 1, or 2. (0 = Healthy, 1 = Warning, 2 = Alert/Intervention)"
+        },
+        "user_status": {
+            "type": "integer",
+            "description": "Must be exactly 0, 1, or 2. Overall user status based on the current meal AND the past 14 days."
+        }
+    },
+    "required": ["meal_assessment_text", "meal_status", "user_status"]
+};
+
+export const assessmentSystemInstruction = `
+You are an expert clinical nutritionist AI.
+Your task is to evaluate a patient's latest meal against their personal medical profile and their dietary history over the past 14 days.
+
+Evaluate based on these Status Codes:
+0 (Healthy): Within standard nutritional goals, balanced macros, safe for their medical profile.
+1 (Warning): Approaching limits (e.g., high sodium for a hypertensive patient, high sugar for a diabetic).
+2 (Alert): Dangerous or highly unbalanced intake requiring potential clinical intervention.
+
+Output a short, plain-text assessment, the meal's status code, and the updated overall user status code.
+`;

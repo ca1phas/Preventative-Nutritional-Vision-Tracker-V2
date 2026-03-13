@@ -1,70 +1,96 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Dashboard - Nutrition Tracker</title>
-        <link rel="stylesheet" href="assets/css/styles.css" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        />
-        <script type="module" src="/src/dashboard.js"></script>
-    </head>
-    <body class="dashboard-body">
-        <nav class="navbar">
-            <div class="navbar-container">
-                <div class="navbar-brand">
-                    <h1>
-                        <i class="fas fa-heartbeat"></i> Nutrition Tracker - Admin Portal
-                    </h1>
-                    <div class="navbar-links">
-                        <a href="dashboard.html" class="active">All Users</a>
-                        <a href="dashboard.html?tab=daily">Daily Reports</a>
-                        <a href="index.html">Homepage</a>
-                    </div>
-                </div>
-                <div style="margin-left: auto; padding-left: 3rem">
-                    <button id="logoutBtn" class="btn-logout">Logout</button>
-                </div>
-            </div>
-        </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analysis Result - Nutrition Tracker</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 
-        <div class="container-output">
-            <div class="page-header">
-                <h2>AI Nutrition Analysis Result</h2>
-                <p style="color: #6b7280; margin-top: 0.5rem">
-                    View the detailed nutrition analysis for the submitted meal
-                </p>
-            </div>
+    <script type="module" src="/src/auth-guard.js"></script>
 
-            <div class="container">
-
-                <div id="mealImageContainer" class="meal-image"></div>
-                <div id="basicInfo" class="meal-info"></div>
-                <div class="divider"></div>
-
-                <h2>Nutrition Table</h2>
-
-                <div class="table-container">
-                <table id="nutritionTable">
-                    <thead>
-                    <tr>
-                        <th>Nutrient</th>
-                        <th>Value</th>
-                    </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                </div>
-
-                <div id="aiSummary" class="summary"></div>
-
-                <button class="back-btn" onclick="history.back()">
-                    Back
-                </button>
-            </div>
+    <script type="module" src="/src/output.js"></script>
+  </head>
+  <body class="dashboard-body">
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-brand">
+          <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
+          <div class="navbar-links">
+            <a href="user-dashboard.html">Profile</a>
+            <a href="user-dashboard.html#dashboard">Dashboard</a>
+            <a href="history.html">History</a>
+            <a href="upload.html">Upload Meal</a>
+          </div>
         </div>
-        <script src="src/output.js"></script></body>
-    </body>
+        <div style="margin-left: auto; padding-left: 3rem">
+          <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-output">
+      <div class="page-header">
+        <h2>AI Nutrition Analysis Result</h2>
+        <p style="color: #6b7280; margin-top: 0.5rem">
+          View the detailed nutrition analysis for your submitted meal
+        </p>
+      </div>
+
+      <div class="container">
+        <div
+          id="mealImageContainer"
+          class="meal-image"
+          style="text-align: center"
+        ></div>
+        <div id="basicInfo" class="meal-info"></div>
+        <div class="divider"></div>
+
+        <h2>Nutrition Table</h2>
+
+        <div class="table-container">
+          <table id="nutritionTable">
+            <thead>
+              <tr>
+                <th>Nutrient</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div
+          id="aiSummary"
+          class="summary"
+          style="
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f3f4f6;
+            border-radius: 8px;
+          "
+        ></div>
+
+        <div style="margin-top: 2rem; text-align: center">
+          <a
+            href="upload.html"
+            class="btn btn-primary"
+            style="text-decoration: none"
+            >Log Another Meal</a
+          >
+          <button
+            class="btn btn-secondary"
+            onclick="history.back()"
+            style="margin-left: 1rem"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
