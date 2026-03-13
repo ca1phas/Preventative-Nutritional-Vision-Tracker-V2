@@ -17,194 +17,61 @@ export const prelimFoodSchema = {
 export const foodNutritionSchema = {
     "type": "object",
     "properties": {
-        "id": {
-            "type": "string",
-            "description": "Use the exact id from the detected food item"
-        },
-        "datetime": {
-            "type": "string",
-            "description": "Use the exact datetime from the detected food item"
-        },
+        // ID removed: The database will generate the uuid for the food_items and nutritions rows.
+        // Datetime removed: Relying on the database 'created_at' timestamp.
         "food_name": {
             "type": "string",
             "description": "Use the exact food_name from the detected food item"
         },
+        // serving_size_g is now grouped with the rest of the nutrition data
         "serving_size_g": {
             "type": "number",
             "description": "Use the exact serving_size_g from the detected food item"
         },
-        "calories_kcal": {
-            "type": "number",
-            "nullable": true
-        },
-        "total_water_ml": {
-            "type": "number",
-            "nullable": true
-        },
-        "protein_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "total_carbs_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "total_fat_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "total_fiber_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "total_sugar_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "saturated_fatty_acids_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "trans_fatty_acids_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "monounsaturated_fat_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "polyunsaturated_fat_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "linoleic_acid_pufa_18_2_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "alpha_linolenic_acid_pufa_18_3_g": {
-            "type": "number",
-            "nullable": true
-        },
-        "dietary_cholesterol_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "calcium_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "iron_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "magnesium_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "phosphorus_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "potassium_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "sodium_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "zinc_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "copper_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "manganese_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "iodine_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "selenium_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "molybdenum_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "chromium_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "fluoride_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_c_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "thiamin_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "riboflavin_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "niacin_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "pantothenic_acid_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_b6_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_b12_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "biotin_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "folate_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_a_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_e_mg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_d_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "vitamin_k_mcg": {
-            "type": "number",
-            "nullable": true
-        },
-        "choline_mg": {
-            "type": "number",
-            "nullable": true
-        }
+        "calories_kcal": { "type": "number", "nullable": true },
+        "total_water_ml": { "type": "number", "nullable": true },
+        "protein_g": { "type": "number", "nullable": true },
+        "total_carbs_g": { "type": "number", "nullable": true },
+        "total_fat_g": { "type": "number", "nullable": true },
+        "total_fiber_g": { "type": "number", "nullable": true },
+        "total_sugar_g": { "type": "number", "nullable": true },
+        "saturated_fatty_acids_g": { "type": "number", "nullable": true },
+        "trans_fatty_acids_g": { "type": "number", "nullable": true },
+        "monounsaturated_fat_g": { "type": "number", "nullable": true },
+        "polyunsaturated_fat_g": { "type": "number", "nullable": true },
+        "linoleic_acid_pufa_18_2_g": { "type": "number", "nullable": true },
+        "alpha_linolenic_acid_pufa_18_3_g": { "type": "number", "nullable": true },
+        "dietary_cholesterol_mg": { "type": "number", "nullable": true },
+        "calcium_mg": { "type": "number", "nullable": true },
+        "iron_mg": { "type": "number", "nullable": true },
+        "magnesium_mg": { "type": "number", "nullable": true },
+        "phosphorus_mg": { "type": "number", "nullable": true },
+        "potassium_mg": { "type": "number", "nullable": true },
+        "sodium_mg": { "type": "number", "nullable": true },
+        "zinc_mg": { "type": "number", "nullable": true },
+        "copper_mg": { "type": "number", "nullable": true },
+        "manganese_mg": { "type": "number", "nullable": true },
+        "iodine_mcg": { "type": "number", "nullable": true },
+        "selenium_mcg": { "type": "number", "nullable": true },
+        "molybdenum_mcg": { "type": "number", "nullable": true },
+        "chromium_mcg": { "type": "number", "nullable": true },
+        "fluoride_mg": { "type": "number", "nullable": true },
+        "vitamin_c_mg": { "type": "number", "nullable": true },
+        "thiamin_mg": { "type": "number", "nullable": true },
+        "riboflavin_mg": { "type": "number", "nullable": true },
+        "niacin_mg": { "type": "number", "nullable": true },
+        "pantothenic_acid_mg": { "type": "number", "nullable": true },
+        "vitamin_b6_mg": { "type": "number", "nullable": true },
+        "vitamin_b12_mcg": { "type": "number", "nullable": true },
+        "biotin_mcg": { "type": "number", "nullable": true },
+        "folate_mcg": { "type": "number", "nullable": true },
+        "vitamin_a_mcg": { "type": "number", "nullable": true },
+        "vitamin_e_mg": { "type": "number", "nullable": true },
+        "vitamin_d_mcg": { "type": "number", "nullable": true },
+        "vitamin_k_mcg": { "type": "number", "nullable": true },
+        "choline_mg": { "type": "number", "nullable": true }
     },
     "required": [
-        "id",
-        "datetime",
         "food_name",
         "serving_size_g",
         "calories_kcal",
@@ -302,7 +169,7 @@ If you do not have enough data in your training set to confidently estimate a sp
 3. Calculate: Scale the nutritional values from the selected USDA item (or your estimations) to match the serving_size_g provided in the Detected Food Item.
 - Calculation Formula: (Nutrient_Value / Base_Serving_Size_g) * Detected_serving_size_g
 - Round all calculated nutrient values to two decimal places.
-4. Map: Transfer the exact id, datetime, food_name, and serving_size_g from the Detected Food Item directly into the output.
+4. Map: Transfer the exact food_name and serving_size_g from the Detected Food Item directly into the output.
 5. Handle Missing Data: If a nutrient value is missing or unlisted in the USDA data (and cannot be estimated), output null.
 Only output 0 if the USDA database explicitly lists the value as 0 or you are certain the estimated value is zero.
 `;
