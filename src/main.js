@@ -13,9 +13,21 @@ document.getElementById('contactTeamBtn')?.addEventListener('click', () => {
   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
 });
 
-document.getElementById('getStartedBtn')?.addEventListener('click', () => {
-  window.location.href = 'upload.html';
-});
+// need login before click "Start Tracking" and "Get Started Now" button
+function requireLogin(e) {
+  e.preventDefault();
+  const isAuthenticated = sessionStorage.getItem('isUserAuthenticated') === 'true';
+  
+  if (isAuthenticated) {
+    window.location.href = 'upload.html';
+  } else {
+    alert('Please login to access this feature.');
+    window.location.href = 'login.html';
+  }
+}
+
+document.getElementById('getStartedBtn')?.addEventListener('click', requireLogin);
+document.getElementById('startTrackingBtn')?.addEventListener('click', requireLogin);
 
 // User dropdown functionality
 const userMenuBtn = document.getElementById('userMenuBtn');
