@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meal History - Nutrition Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script type="module" src="/src/history.js"></script>
+</head>
+
+<body class="dashboard-body">
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
+                <div class="navbar-links">
+                    <a href="user-dashboard.html">Profile</a>
+                    <a href="user-dashboard.html#dashboard">Dashboard</a>
+                    <a href="history.html" class="active">History</a>
+                    <a href="upload.html">Upload Meal</a>
+                    <a href="index.html">Homepage</a>
+                </div>
+            </div>
+            <div style="margin-left: auto; padding-left: 3rem">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-history"></i> Meal History</h2>
+            <p class="history-subtitle">
+                Select a date to view a specific day, or keep "All dates" to see your
+                full history from previous to latest records.
+            </p>
+            <p id="historyUserDisplay" class="history-user"></p>
+        </div>
+
+        <section class="history-filter-card">
+            <div class="history-filter-row">
+                <label for="historyDateFilter" class="history-filter-label">
+                    <i class="fas fa-calendar-alt"></i> Date
+                </label>
+                <input
+                    type="date"
+                    id="historyDateFilter"
+                    class="history-filter-select"
+                    placeholder="dd/mm/yyyy"
+                />
+                <button type="button" id="historyDateClear" class="history-date-clear-btn" title="Clear date filter">
+                    <i class="fas fa-times"></i> Reset
+                </button>
+            </div>
+        </section>
+
+        <section id="historyCards" class="history-cards-wrap"></section>
+
+        <div id="historyEmptyState" class="history-empty hidden">
+            <i class="fas fa-utensils"></i>
+            <h3>No meals found</h3>
+            <p>No meal records match the selected date.</p>
+        </div>
+    </div>
+
+    <!-- Meal Detail Modal -->
+    <div id="mealModal" class="meal-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mealModalTitle">
+        <div class="meal-modal">
+            <button id="mealModalClose" class="meal-modal-close" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="meal-modal-image-wrap">
+                <img id="mealModalImage" src="" alt="Meal image" class="meal-modal-image" />
+            </div>
+            <div class="meal-modal-body">
+                <h3 id="mealModalTitle" class="meal-modal-title">
+                    <span id="mealModalDate"></span>
+                    <span class="meal-modal-time"><i class="fas fa-clock"></i> <span id="mealModalTime"></span></span>
+                </h3>
+                <div class="meal-modal-status-row">
+                    <button id="mealModalStatus" class="history-status-btn" type="button"></button>
+                </div>
+                <!-- Detail section — to be filled in after backend integration -->
+                <div id="mealModalDetails" class="meal-modal-details">
+                    <!-- Meal details will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
