@@ -1,191 +1,33 @@
 import './style.css';
-
-// ===== CONFIGURATION =====
-// Set to false when integrating with backend API
-const USE_MOCK_DATA = true;
+import { supabase } from './supabase.js';
 
 // ===== AUTH CHECK =====
+function checkUserAuth() {
+    if (!sessionStorage.getItem('isUserAuthenticated')) {
+        window.location.href = 'login.html';
+    }
+}
 checkUserAuth();
 
 const currentUser = sessionStorage.getItem('userID');
 document.getElementById('currentUserDisplay').textContent = `User: ${currentUser}`;
 
-// ===== MOCK DATA (remove this section when integrating with backend) =====
-const MOCK_USER_PROFILE = {
-    userID: currentUser,
-    name: 'XXX',
-    age: 35,
-    gender: 'male',
-    weight: 75.5,
-    height: 175,
-    medicalNotes: 'Pre-diabetic. Avoid high sugar intake. Regular monitoring required.'
-};
-
-const MOCK_MONTHLY_SUMMARY = {
-    month: 'March 2026',
-    highestCalorieDay: {
-        date: 'March 5, 2026',
-        calories: 2450
-    },
-    lowestCalorieDay: {
-        date: 'March 2, 2026',
-        calories: 1420
-    },
-    avgDailyCalories: 1850,
-    totalMeals: 87
-};
-
-const MOCK_DAILY_SUMMARY = {
-    date: '2026-03-09',
-    calories: 1650,
-    protein: 78,
-    carbs: 195,
-    fats: 52
-};
-
-const MOCK_INSIGHTS = [
-    {
-        type: 'success',
-        icon: 'fa-check-circle',
-        title: 'Great Progress!',
-        message: 'You\'ve maintained healthy calorie intake for 5 consecutive days.'
-    },
-    {
-        type: 'warning',
-        icon: 'fa-exclamation-triangle',
-        title: 'High Carbohydrate Intake',
-        message: 'Your carb intake averaged 220g/day this week, which is 15% above recommended levels for pre-diabetic patients.'
-    },
-    {
-        type: 'info',
-        icon: 'fa-info-circle',
-        title: 'Eating Pattern Analysis',
-        message: 'You tend to consume 60% of daily calories after 6 PM. Consider earlier meal times for better glucose management.'
-    },
-    {
-        type: 'danger',
-        icon: 'fa-heartbeat',
-        title: 'Risk Indicator',
-        message: 'Blood sugar spike risk detected on March 7. High sugar intake at dinner (estimated 85g).'
-    }
-];
-
-const MOCK_MEAL_HISTORY = [
-    {
-        datetime: '2026-03-09 18:30',
-        items: ['Grilled Chicken', 'Brown Rice', 'Steamed Broccoli', 'Olive Oil'],
-        calories: 650,
-        protein: 45,
-        carbs: 68,
-        fats: 18,
-        status: 'healthy'
-    },
-    {
-        datetime: '2026-03-09 12:15',
-        items: ['Salmon Fillet', 'Quinoa', 'Mixed Vegetables', 'Avocado'],
-        calories: 720,
-        protein: 52,
-        carbs: 65,
-        fats: 28,
-        status: 'healthy'
-    },
-    {
-        datetime: '2026-03-09 08:00',
-        items: ['Oatmeal', 'Banana', 'Almonds', 'Honey'],
-        calories: 380,
-        protein: 12,
-        carbs: 62,
-        fats: 11,
-        status: 'healthy'
-    },
-    {
-        datetime: '2026-03-08 19:00',
-        items: ['Pasta Carbonara', 'Garlic Bread', 'Caesar Salad'],
-        calories: 1150,
-        protein: 38,
-        carbs: 142,
-        fats: 48,
-        status: 'warning'
-    },
-    {
-        datetime: '2026-03-08 13:00',
-        items: ['Turkey Sandwich', 'Potato Chips', 'Apple'],
-        calories: 580,
-        protein: 28,
-        carbs: 75,
-        fats: 18,
-        status: 'healthy'
-    },
-    {
-        datetime: '2026-03-08 07:30',
-        items: ['Greek Yogurt', 'Granola', 'Blueberries', 'Honey'],
-        calories: 420,
-        protein: 18,
-        carbs: 58,
-        fats: 14,
-        status: 'healthy'
-    },
-    {
-        datetime: '2026-03-07 20:00',
-        items: ['Pizza (4 slices)', 'Soda', 'Ice Cream'],
-        calories: 1480,
-        protein: 42,
-        carbs: 185,
-        fats: 62,
-        status: 'intervention'
-    },
-    {
-        datetime: '2026-03-07 12:30',
-        items: ['Chicken Salad', 'Whole Wheat Bread', 'Orange Juice'],
-        calories: 490,
-        protein: 32,
-        carbs: 58,
-        fats: 14,
-        status: 'healthy'
-    }
-];
-
-const MOCK_ALERTS = [
-    {
-        type: 'warning',
-        date: '2026-03-07',
-        message: 'High calorie intake detected (1480 cal at dinner). Recommendation: Reduce portion sizes and avoid high-calorie beverages.'
-    },
-    {
-        type: 'info',
-        date: '2026-03-06',
-        message: 'Excellent protein intake! You met your daily protein goal of 70g.'
-    },
-    {
-        type: 'danger',
-        date: '2026-03-05',
-        message: 'Alert: Carbohydrate intake exceeded safe levels for pre-diabetic patients. Please consult your dietitian.'
-    }
-];
-
-// ===== END OF MOCK DATA =====
-
 // ===== TAB NAVIGATION =====
 const profileTab = document.getElementById('profileTab');
 const dashboardTab = document.getElementById('dashboardTab');
 const historyTab = document.getElementById('historyTab');
-
 const profilePanel = document.getElementById('profilePanel');
 const dashboardPanel = document.getElementById('dashboardPanel');
 const historyPanel = document.getElementById('historyPanel');
 
 function showPanel(panelToShow) {
-    // Hide all panels
     profilePanel.classList.add('hidden');
     dashboardPanel.classList.add('hidden');
     historyPanel.classList.add('hidden');
-
-    // Remove active class from all tabs
     profileTab.classList.remove('active');
     dashboardTab.classList.remove('active');
     historyTab.classList.remove('active');
 
-    // Show selected panel and activate tab
     if (panelToShow === 'profile') {
         profilePanel.classList.remove('hidden');
         profileTab.classList.add('active');
@@ -200,232 +42,296 @@ function showPanel(panelToShow) {
     }
 }
 
-profileTab.addEventListener('click', (e) => {
-    e.preventDefault();
-    showPanel('profile');
-});
+profileTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('profile'); });
+dashboardTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('dashboard'); });
+historyTab.addEventListener('click', (e) => { e.preventDefault(); showPanel('history'); });
 
-dashboardTab.addEventListener('click', (e) => {
-    e.preventDefault();
-    showPanel('dashboard');
-});
+// ===== PROFILE =====
+async function loadUserProfile() {
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', currentUser)
+        .single();
 
-historyTab.addEventListener('click', (e) => {
-    e.preventDefault();
-    showPanel('history');
-});
+    if (error) { console.error('Profile load error:', error.message); return; }
 
-// ===== PROFILE SECTION =====
-function loadUserProfile() {
-    if (USE_MOCK_DATA) {
-        // Load mock data
-        document.getElementById('userName').value = MOCK_USER_PROFILE.name;
-        document.getElementById('userAge').value = MOCK_USER_PROFILE.age;
-        document.getElementById('userGender').value = MOCK_USER_PROFILE.gender;
-        document.getElementById('userWeight').value = MOCK_USER_PROFILE.weight;
-        document.getElementById('userHeight').value = MOCK_USER_PROFILE.height;
-        document.getElementById('medicalNotes').value = MOCK_USER_PROFILE.medicalNotes;
+    if (data) {
+        document.getElementById('userName').value = data.name || '';
+        document.getElementById('userAge').value = data.age || '';
+        document.getElementById('userGender').value = data.gender || '';
+        document.getElementById('userWeight').value = data.weight || '';
+        document.getElementById('userHeight').value = data.height || '';
+        // medical_notes is an ARRAY type — join for display
+        document.getElementById('medicalNotes').value =
+            Array.isArray(data.medical_notes) ? data.medical_notes.join(', ') : (data.medical_notes || '');
         calculateBMI();
-    } else {
-        // TODO: Replace with actual API call
-        // fetch(`/api/users/${currentUser}/profile`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         document.getElementById('userName').value = data.name;
-        //         document.getElementById('userAge').value = data.age;
-        //         document.getElementById('userGender').value = data.gender;
-        //         document.getElementById('userWeight').value = data.weight;
-        //         document.getElementById('userHeight').value = data.height;
-        //         document.getElementById('medicalNotes').value = data.medicalNotes;
-        //         calculateBMI();
-        //     });
     }
 }
 
 function calculateBMI() {
     const weight = parseFloat(document.getElementById('userWeight').value);
     const height = parseFloat(document.getElementById('userHeight').value);
-
     if (weight && height) {
-        const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
-        document.getElementById('userBMI').value = bmi;
+        document.getElementById('userBMI').value = (weight / ((height / 100) ** 2)).toFixed(1);
     }
 }
 
 document.getElementById('userWeight').addEventListener('input', calculateBMI);
 document.getElementById('userHeight').addEventListener('input', calculateBMI);
 
-document.getElementById('profileForm').addEventListener('submit', (e) => {
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // medical_notes is ARRAY in Supabase — split by comma
+    const medicalNotesRaw = document.getElementById('medicalNotes').value;
+    const medicalNotesArray = medicalNotesRaw
+        ? medicalNotesRaw.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
     const profileData = {
-        userID: currentUser,
+        id: currentUser,
         name: document.getElementById('userName').value,
         age: parseInt(document.getElementById('userAge').value),
         gender: document.getElementById('userGender').value,
         weight: parseFloat(document.getElementById('userWeight').value),
         height: parseFloat(document.getElementById('userHeight').value),
-        medicalNotes: document.getElementById('medicalNotes').value
+        medical_notes: medicalNotesArray
     };
 
-    if (USE_MOCK_DATA) {
-        // Simulate save
-        alert('Profile saved successfully! (Mock mode - data not persisted)');
-        console.log('Profile data:', profileData);
+    const { error } = await supabase
+        .from('users')
+        .upsert(profileData, { onConflict: 'id' });
+
+    if (error) {
+        alert('Error saving profile: ' + error.message);
+        console.error(error);
     } else {
-        // TODO: Replace with actual API call
-        // fetch(`/api/users/${currentUser}/profile`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(profileData)
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //     alert('Profile saved successfully!');
-        // });
+        alert('Profile saved successfully!');
     }
 });
 
-// ===== DASHBOARD SECTION =====
-function loadDashboardData() {
-    if (USE_MOCK_DATA) {
-        // Load monthly summary
-        document.getElementById('currentMonth').textContent = MOCK_MONTHLY_SUMMARY.month;
-        document.getElementById('highestCalorieDay').textContent = MOCK_MONTHLY_SUMMARY.highestCalorieDay.date;
-        document.getElementById('highestCalorieValue').textContent = `${MOCK_MONTHLY_SUMMARY.highestCalorieDay.calories} calories`;
-        document.getElementById('lowestCalorieDay').textContent = MOCK_MONTHLY_SUMMARY.lowestCalorieDay.date;
-        document.getElementById('lowestCalorieValue').textContent = `${MOCK_MONTHLY_SUMMARY.lowestCalorieDay.calories} calories`;
-        document.getElementById('avgDailyCalories').textContent = MOCK_MONTHLY_SUMMARY.avgDailyCalories;
-        document.getElementById('totalMealsMonth').textContent = MOCK_MONTHLY_SUMMARY.totalMeals;
-
-        // Load daily summary
-        const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        document.getElementById('currentDate').textContent = today;
-        document.getElementById('dailyCalories').textContent = MOCK_DAILY_SUMMARY.calories;
-        document.getElementById('dailyProtein').textContent = MOCK_DAILY_SUMMARY.protein;
-        document.getElementById('dailyCarbs').textContent = MOCK_DAILY_SUMMARY.carbs;
-        document.getElementById('dailyFats').textContent = MOCK_DAILY_SUMMARY.fats;
-
-        // Load insights
-        loadInsights();
-    } else {
-        // TODO: Replace with actual API calls
-        // fetch(`/api/users/${currentUser}/dashboard/monthly`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Load monthly data
-        //     });
-
-        // fetch(`/api/users/${currentUser}/dashboard/daily`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Load daily data
-        //     });
-
-        // fetch(`/api/users/${currentUser}/insights`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Load insights
-        //     });
-    }
+// Fix Reset button — onclick attr doesn't work in ES modules
+const resetBtn = document.querySelector('button[onclick="loadUserProfile()"]');
+if (resetBtn) {
+    resetBtn.removeAttribute('onclick');
+    resetBtn.addEventListener('click', loadUserProfile);
 }
 
-function loadInsights() {
+// ===== DASHBOARD =====
+async function loadDashboardData() {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+    const { data: meals, error } = await supabase
+        .from('meals')
+        .select(`
+            id,
+            status,
+            created_at,
+            nutritions (
+                calories_kcal,
+                protein_g,
+                total_carbs_g,
+                total_fat_g,
+                total_sugar_g
+            )
+        `)
+        .eq('user_id', currentUser)
+        .gte('created_at', startOfMonth);
+
+    if (error) { console.error('Dashboard error:', error.message); return; }
+
+    // Monthly summary
+    const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    document.getElementById('currentMonth').textContent = monthLabel;
+
+    const byDay = {};
+    meals.forEach(meal => {
+        const day = meal.created_at.slice(0, 10);
+        const cal = meal.nutritions?.calories_kcal || 0;
+        byDay[day] = (byDay[day] || 0) + cal;
+    });
+
+    const days = Object.entries(byDay);
+    if (days.length > 0) {
+        const highest = days.reduce((a, b) => a[1] > b[1] ? a : b);
+        const lowest = days.reduce((a, b) => a[1] < b[1] ? a : b);
+        const avg = Math.round(days.reduce((sum, d) => sum + d[1], 0) / days.length);
+        document.getElementById('highestCalorieDay').textContent = highest[0];
+        document.getElementById('highestCalorieValue').textContent = `${Math.round(highest[1])} calories`;
+        document.getElementById('lowestCalorieDay').textContent = lowest[0];
+        document.getElementById('lowestCalorieValue').textContent = `${Math.round(lowest[1])} calories`;
+        document.getElementById('avgDailyCalories').textContent = avg;
+    } else {
+        document.getElementById('highestCalorieDay').textContent = 'No data yet';
+        document.getElementById('lowestCalorieDay').textContent = 'No data yet';
+        document.getElementById('avgDailyCalories').textContent = '0';
+    }
+    document.getElementById('totalMealsMonth').textContent = meals.length;
+
+    // Daily summary
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    const todayMeals = meals.filter(m => m.created_at >= startOfDay);
+    const dailyTotals = todayMeals.reduce((acc, meal) => {
+        const n = meal.nutritions || {};
+        acc.calories += n.calories_kcal || 0;
+        acc.protein += n.protein_g || 0;
+        acc.carbs += n.total_carbs_g || 0;
+        acc.fats += n.total_fat_g || 0;
+        return acc;
+    }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+    document.getElementById('dailyCalories').textContent = Math.round(dailyTotals.calories);
+    document.getElementById('dailyProtein').textContent = Math.round(dailyTotals.protein);
+    document.getElementById('dailyCarbs').textContent = Math.round(dailyTotals.carbs);
+    document.getElementById('dailyFats').textContent = Math.round(dailyTotals.fats);
+
+    generateInsights(dailyTotals, days);
+}
+
+function generateInsights(dailyTotals, days) {
     const container = document.getElementById('insightsContainer');
     container.innerHTML = '';
+    const insights = [];
 
-    MOCK_INSIGHTS.forEach(insight => {
-        const insightCard = document.createElement('div');
-        insightCard.className = `insight-card insight-${insight.type}`;
-        insightCard.innerHTML = `
-            <div class="insight-icon">
-                <i class="fas ${insight.icon}"></i>
-            </div>
-            <div class="insight-content">
-                <h4>${insight.title}</h4>
-                <p>${insight.message}</p>
-            </div>
+    if (dailyTotals.calories > 0 && dailyTotals.calories < 2000) {
+        insights.push({ type: 'success', icon: 'fa-check-circle', title: 'Healthy Calorie Intake Today', message: `You've consumed ${Math.round(dailyTotals.calories)} kcal today — within a healthy range.` });
+    }
+    if (dailyTotals.carbs > 200) {
+        insights.push({ type: 'warning', icon: 'fa-exclamation-triangle', title: 'High Carbohydrate Intake', message: `Today's carb intake is ${Math.round(dailyTotals.carbs)}g, which may exceed recommended levels.` });
+    }
+    if (dailyTotals.protein >= 70) {
+        insights.push({ type: 'info', icon: 'fa-info-circle', title: 'Good Protein Intake', message: `You've hit your protein goal with ${Math.round(dailyTotals.protein)}g today.` });
+    }
+    if (days.length > 0) {
+        const avg = days.reduce((sum, d) => sum + d[1], 0) / days.length;
+        if (avg > 2200) {
+            insights.push({ type: 'danger', icon: 'fa-heartbeat', title: 'High Monthly Average', message: `Your monthly average is ${Math.round(avg)} kcal/day. Consider reducing portion sizes.` });
+        }
+    }
+    if (insights.length === 0) {
+        insights.push({ type: 'info', icon: 'fa-info-circle', title: 'No Meals Logged Yet', message: 'Upload a meal to start seeing insights here.' });
+    }
+
+    insights.forEach(insight => {
+        const card = document.createElement('div');
+        card.className = `insight-card insight-${insight.type}`;
+        card.innerHTML = `
+            <div class="insight-icon"><i class="fas ${insight.icon}"></i></div>
+            <div class="insight-content"><h4>${insight.title}</h4><p>${insight.message}</p></div>
         `;
-        container.appendChild(insightCard);
+        container.appendChild(card);
     });
 }
 
-// ===== HISTORY SECTION =====
-function loadHistoryData() {
-    if (USE_MOCK_DATA) {
-        loadMealHistory();
-        loadAlerts();
-    } else {
-        // TODO: Replace with actual API calls
-        // fetch(`/api/users/${currentUser}/meals/history`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Load meal history
-        //     });
+// ===== HISTORY =====
+async function loadHistoryData() {
+    const { data: meals, error } = await supabase
+        .from('meals')
+        .select(`
+            id,
+            status,
+            created_at,
+            nutritions (
+                calories_kcal,
+                protein_g,
+                total_carbs_g,
+                total_fat_g
+            ),
+            food_items (
+                food_name
+            )
+        `)
+        .eq('user_id', currentUser)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-        // fetch(`/api/users/${currentUser}/alerts`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Load alerts
-        //     });
-    }
+    if (error) { console.error('History error:', error.message); return; }
+
+    loadMealHistory(meals);
+    loadAlerts(meals);
 }
 
-function loadMealHistory() {
+function loadMealHistory(meals) {
     const tbody = document.getElementById('historyTableBody');
     tbody.innerHTML = '';
 
-    MOCK_MEAL_HISTORY.forEach(meal => {
+    if (meals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;">No meals logged yet.</td></tr>';
+        return;
+    }
+
+    meals.forEach(meal => {
+        const n = meal.nutritions || {};
+        const datetime = new Date(meal.created_at).toLocaleString();
+        const calories = Math.round(n.calories_kcal || 0);
+        const protein = Math.round(n.protein_g || 0);
+        const carbs = Math.round(n.total_carbs_g || 0);
+        const fats = Math.round(n.total_fat_g || 0);
+        const itemNames = Array.isArray(meal.food_items) && meal.food_items.length > 0
+            ? meal.food_items.map(f => f.food_name).join(', ')
+            : 'N/A';
+
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td style="font-weight: 600;">${meal.datetime}</td>
-            <td>${meal.items.join(', ')}</td>
-            <td>${meal.calories}</td>
-            <td>${meal.protein}</td>
-            <td>${meal.carbs}</td>
-            <td>${meal.fats}</td>
+            <td style="font-weight:600;">${datetime}</td>
+            <td>${itemNames}</td>
+            <td>${calories}</td>
+            <td>${protein}</td>
+            <td>${carbs}</td>
+            <td>${fats}</td>
             <td>${getStatusBadge(meal.status)}</td>
         `;
         tbody.appendChild(row);
     });
 }
 
-function loadAlerts() {
+function loadAlerts(meals) {
     const container = document.getElementById('alertsContainer');
     container.innerHTML = '';
 
-    MOCK_ALERTS.forEach(alert => {
-        const alertCard = document.createElement('div');
-        alertCard.className = `alert-card alert-${alert.type}`;
-        alertCard.innerHTML = `
-            <div class="alert-icon">
-                <i class="fas ${alert.type === 'warning' ? 'fa-exclamation-triangle' : alert.type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            </div>
+    // status 2 = intervention, status 1 = warning
+    const alertMeals = meals.filter(m => m.status === 1 || m.status === 2);
+
+    if (alertMeals.length === 0) {
+        container.innerHTML = '<p style="color:#6b7280;">No alerts at this time.</p>';
+        return;
+    }
+
+    alertMeals.forEach(meal => {
+        const n = meal.nutritions || {};
+        const calories = Math.round(n.calories_kcal || 0);
+        const date = meal.created_at.slice(0, 10);
+        const type = meal.status === 2 ? 'danger' : 'warning';
+        const icon = type === 'danger' ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+
+        const card = document.createElement('div');
+        card.className = `alert-card alert-${type}`;
+        card.innerHTML = `
+            <div class="alert-icon"><i class="fas ${icon}"></i></div>
             <div class="alert-content">
-                <p class="alert-date">${alert.date}</p>
-                <p class="alert-message">${alert.message}</p>
+                <p class="alert-date">${date}</p>
+                <p class="alert-message">High intake detected: ${calories} kcal on this meal.</p>
             </div>
         `;
-        container.appendChild(alertCard);
+        container.appendChild(card);
     });
 }
 
+// status: 0=healthy, 1=warning, 2=intervention
 function getStatusBadge(status) {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'healthy') {
-        return '<span class="badge badge-healthy">🟢 Healthy</span>';
-    } else if (statusLower === 'warning') {
-        return '<span class="badge badge-warning">🟡 Warning</span>';
-    } else if (statusLower === 'intervention') {
-        return '<span class="badge badge-intervention">🔴 Intervention</span>';
-    }
+    if (status === 0) return '<span class="badge badge-healthy">🟢 Healthy</span>';
+    if (status === 1) return '<span class="badge badge-warning">🟡 Warning</span>';
+    if (status === 2) return '<span class="badge badge-intervention">🔴 Intervention</span>';
     return '<span class="badge">Unknown</span>';
 }
 
 // ===== LOGOUT =====
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('userID');
-    sessionStorage.removeItem('userID');
+    sessionStorage.clear();
     window.location.href = 'index.html';
 });
 

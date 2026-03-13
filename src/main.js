@@ -1,87 +1,34 @@
 import './style.css';
 
-// ==========================================
-// UI & Navigation Logic
-// ==========================================
-
-// Smooth scrolling for specific buttons
 document.getElementById('learnMoreBtn')?.addEventListener('click', () => {
   document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
 });
-
 document.getElementById('contactTeamBtn')?.addEventListener('click', () => {
   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
 });
-
 document.getElementById('getStartedBtn')?.addEventListener('click', () => {
   window.location.href = 'upload.html';
 });
 
-// User dropdown functionality
+// Dropdown
 const userMenuBtn = document.getElementById('userMenuBtn');
 const userDropdown = document.getElementById('userDropdown');
-
 if (userMenuBtn && userDropdown) {
-  userMenuBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userDropdown.classList.toggle('show');
-  });
-
-  // Close dropdown when clicking outside
-  document.addEventListener('click', () => {
-    userDropdown.classList.remove('show');
-  });
+  userMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('show'); });
+  document.addEventListener('click', () => userDropdown.classList.remove('show'));
 }
 
-// Role selection handlers (Mock Auth)
+// Admin — login via login.html, admin check happens in dashboard.js via is_admin flag
 document.getElementById('adminRole')?.addEventListener('click', (e) => {
   e.preventDefault();
-
-  const ADMIN_USERNAME = 'admin';
-  const ADMIN_PASSWORD = 'admin123';
-
-  const inputUsername = prompt('Enter Admin Username:');
-  if (inputUsername === null) return;
-
-  const inputPassword = prompt('Enter Admin Password:');
-  if (inputPassword === null) return;
-
-  if (inputUsername.trim() === ADMIN_USERNAME && inputPassword === ADMIN_PASSWORD) {
-    sessionStorage.setItem('isAdminAuthenticated', 'true');
-    window.location.href = 'dashboard.html?role=admin';
-  } else {
-    sessionStorage.removeItem('isAdminAuthenticated');
-    alert('Invalid admin credentials. Access denied.');
-  }
+  sessionStorage.setItem('pendingRole', 'admin');
+  window.location.href = 'login.html';
 });
 
+// User — login via login.html
 document.getElementById('userRole')?.addEventListener('click', (e) => {
   e.preventDefault();
-
-  const VALID_USERS = {
-    'U001': 'user123',
-    'U002': 'user123',
-    'U003': 'user123',
-    'DOC001': 'doc123',
-    'PATIENT123': 'patient123'
-  };
-
-  const inputUsername = prompt('Enter User ID:');
-  if (inputUsername === null) return;
-
-  const inputPassword = prompt('Enter Password:');
-  if (inputPassword === null) return;
-
-  const username = inputUsername.trim();
-  if (VALID_USERS.hasOwnProperty(username) && VALID_USERS[username] === inputPassword) {
-    sessionStorage.setItem('userID', username);
-    sessionStorage.setItem('isUserAuthenticated', 'true');
-    window.location.href = 'user-dashboard.html';
-  } else {
-    sessionStorage.removeItem('userID');
-    sessionStorage.removeItem('isUserAuthenticated');
-    alert('Invalid user credentials. Access denied.');
-  }
+  window.location.href = 'login.html';
 });
 
 document.getElementById('loginBtn')?.addEventListener('click', (e) => {
@@ -89,61 +36,38 @@ document.getElementById('loginBtn')?.addEventListener('click', (e) => {
   window.location.href = 'login.html';
 });
 
-// Smooth scrolling for navigation links
+// Smooth scrolling
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     e.preventDefault();
     const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 
-// Active navigation highlighting
+// Active nav on scroll
 window.addEventListener('scroll', () => {
   const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('.nav-menu a');
-
   let current = '';
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop;
-    const sectionHeight = section.clientHeight;
-    if (pageYOffset >= sectionTop - 200) {
-      current = section.getAttribute('id');
-    }
-  });
-
+  sections.forEach(section => { if (pageYOffset >= section.offsetTop - 200) current = section.getAttribute('id'); });
   navLinks.forEach(link => {
     link.classList.remove('active');
-    if (link.getAttribute('href') === `#${current}`) {
-      link.classList.add('active');
-    }
+    if (link.getAttribute('href') === `#${current}`) link.classList.add('active');
   });
 });
 
-// Mobile menu toggle functionality
+// Mobile menu
 const mobileMenuToggle = document.getElementById('mobileMenuToggle');
 const navMenu = document.getElementById('navMenu');
-
 if (mobileMenuToggle && navMenu) {
   mobileMenuToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     navMenu.classList.toggle('mobile-open');
-
     const icon = mobileMenuToggle.querySelector('i');
-    if (navMenu.classList.contains('mobile-open')) {
-      icon.classList.remove('fa-bars');
-      icon.classList.add('fa-times');
-    } else {
-      icon.classList.remove('fa-times');
-      icon.classList.add('fa-bars');
-    }
+    icon.classList.toggle('fa-bars');
+    icon.classList.toggle('fa-times');
   });
-
   navMenu.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       navMenu.classList.remove('mobile-open');
@@ -152,7 +76,6 @@ if (mobileMenuToggle && navMenu) {
       icon.classList.add('fa-bars');
     });
   });
-
   document.addEventListener('click', (e) => {
     if (!navMenu.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
       navMenu.classList.remove('mobile-open');
