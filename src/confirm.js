@@ -198,7 +198,7 @@ confirmBtn.addEventListener('click', async () => {
             image: uploadedImage,
             food_items: ingredients,
             nutrition_data: finalNutritionData
-        };
+        }));
 
         // Save to session storage for the results page to read
         // sessionStorage.setItem('lastSubmittedRecord', JSON.stringify(payload));

@@ -1,30 +1,55 @@
 import './style.css';
+import { authenticateUser, logoutUser } from './supabase.js';
 
-
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Demo user credentials (replace with backend auth in production)
-    const VALID_USERS = {
-        U001: 'user123',
-        U002: 'user123',
-        U003: 'user123',
-        DOC001: 'doc123',
-        PATIENT123: 'patient123',
-    };
-
-    const userID = document.getElementById('userID').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('errorMsg');
+    const loginBtn = document.getElementById('loginBtn');
 
-    if (
-        VALID_USERS.hasOwnProperty(userID) &&
-        VALID_USERS[userID] === password
-    ) {
-        // Valid credentials - set session and redirect
-        sessionStorage.setItem('userID', userID);
+    // Reset UI state during load
+    loginBtn.textContent = 'Logging in...';
+    loginBtn.disabled = true;
+    errorMsg.style.display = 'none';
+
+    try {
+        // Call the Supabase helper function
+        const { user, isAdmin } = await authenticateUser(email, password);
+
+        // Set basic user session
+        sessionStorage.setItem('userID', user.id);
         sessionStorage.setItem('isUserAuthenticated', 'true');
-        window.location.href = 'user-dashboard.html';
-    } else {
-        alert('Invalid user ID or password. Please try again.');
+
+        const pendingRole = sessionStorage.getItem('pendingRole');
+        sessionStorage.removeItem('pendingRole');
+
+        // Route based on role
+        if (isAdmin) {
+            // Admin user — redirect to admin dashboard
+            sessionStorage.setItem('isAdminAuthenticated', 'true');
+            window.location.href = 'dashboard.html?tab=patients';
+        } else if (pendingRole === 'admin') {
+            // Tried to access admin portal but not an admin
+            errorMsg.textContent = 'You do not have admin access.';
+            errorMsg.style.display = 'block';
+            loginBtn.textContent = 'Login';
+            loginBtn.disabled = false;
+
+            // Clear their session to be safe
+            await logoutUser();
+            sessionStorage.clear();
+        } else {
+            // Regular user — redirect to user dashboard
+            window.location.href = 'user-dashboard.html';
+        }
+
+    } catch (error) {
+        // Handle Invalid Credentials or Network Errors
+        errorMsg.textContent = error.message;
+        errorMsg.style.display = 'block';
+        loginBtn.textContent = 'Login';
+        loginBtn.disabled = false;
     }
 });

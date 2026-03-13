@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Nutrition Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script type="module" src="/src/login.js"></script>
   </head>
   <body>
     <div class="login-container">
@@ -18,84 +21,39 @@
         <form id="loginForm">
           <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" required placeholder="Enter your email" />
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="Enter your email"
+            />
           </div>
           <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" required placeholder="Enter your password" />
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Enter your password"
+            />
           </div>
-          <p id="errorMsg" style="color:red;display:none;margin-bottom:1rem;"></p>
-          <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+          <p
+            id="errorMsg"
+            style="color: red; display: none; margin-bottom: 1rem"
+          ></p>
+          <button type="submit" class="btn btn-primary" id="loginBtn">
+            Login
+          </button>
         </form>
 
-        <div style="text-align:center;margin-top:1.5rem">
-          <a href="index.html" style="color:#667eea;text-decoration:none;font-weight:500">← Back to Homepage</a>
+        <div style="text-align: center; margin-top: 1.5rem">
+          <a
+            href="index.html"
+            style="color: #667eea; text-decoration: none; font-weight: 500"
+            >← Back to Homepage</a
+          >
         </div>
       </div>
     </div>
-
-    <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-      const supabase = createClient(
-       'https://dglguefhzheajmqahmqx.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnbGd1ZWZoemhlYWptcWFobXF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjAzOTIsImV4cCI6MjA4ODYzNjM5Mn0.aq_LkeMjx9uiF4L-5N4OA6lXzWJ4FPTdxjBw7YrnH-Q'
-      );
-
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('errorMsg');
-        const loginBtn = document.getElementById('loginBtn');
-
-        loginBtn.textContent = 'Logging in...';
-        loginBtn.disabled = true;
-        errorMsg.style.display = 'none';
-
-        // 1. Sign in with Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-        if (error) {
-          errorMsg.textContent = error.message;
-          errorMsg.style.display = 'block';
-          loginBtn.textContent = 'Login';
-          loginBtn.disabled = false;
-          return;
-        }
-
-        const userID = data.user.id;
-        sessionStorage.setItem('userID', userID);
-        sessionStorage.setItem('isUserAuthenticated', 'true');
-
-        // 2. Check is_admin in users table
-        const { data: profile } = await supabase
-          .from('users')
-          .select('is_admin')
-          .eq('id', userID)
-          .single();
-
-        const pendingRole = sessionStorage.getItem('pendingRole');
-        sessionStorage.removeItem('pendingRole');
-
-        if (profile?.is_admin) {
-          // Admin user — redirect to admin dashboard
-          sessionStorage.setItem('isAdminAuthenticated', 'true');
-          window.location.href = 'dashboard.html?tab=patients';
-        } else if (pendingRole === 'admin') {
-          // Tried admin portal but not an admin
-          errorMsg.textContent = 'You do not have admin access.';
-          errorMsg.style.display = 'block';
-          loginBtn.textContent = 'Login';
-          loginBtn.disabled = false;
-          await supabase.auth.signOut();
-          sessionStorage.clear();
-        } else {
-          // Regular user
-          window.location.href = 'user-dashboard.html';
-        }
-      });
-    </script>
   </body>
 </html>
