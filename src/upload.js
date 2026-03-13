@@ -4,6 +4,12 @@ import { analyzeFoodImage } from './ai-service.js';
 // checkAuth();
 // setupLogout();
 
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+  sessionStorage.removeItem('isUserAuthenticated');
+  sessionStorage.removeItem('userID');
+  window.location.href = 'index.html';
+});
+
 const uploadForm = document.getElementById('uploadForm');
 const mealImage = document.getElementById('mealImage');
 const imagePreview = document.getElementById('imagePreview');
