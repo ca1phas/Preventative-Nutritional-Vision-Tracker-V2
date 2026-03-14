@@ -146,6 +146,7 @@ async function loadUserProfile() {
     resolvedDbUserId = data.id;
     sessionStorage.setItem('supabaseUserId', data.id);
     sessionStorage.setItem('supabaseUserStatus', String(data.status ?? 0));
+    sessionStorage.setItem('profileComplete', 'true');
 
     setProfileFormValues(data);
     if (source === 'latest' && !isUuid(currentUser)) {
@@ -208,6 +209,7 @@ profileForm.addEventListener('submit', async (e) => {
         return;
     }
 
+    sessionStorage.setItem('profileComplete', 'true');
     await loadUserProfile();
 
     setStatus('Profile saved successfully.', 'success');
