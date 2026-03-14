@@ -1,7 +1,7 @@
-import localforage from 'localforage';
-import { getUserProfile, getUserMeals, updateMeal, updateUserProfile } from './supabase.js';
+import { getUserProfile, getUserMeals, getMeal, updateMeal, updateUserProfile } from './supabase.js';
 import { generateMealAssessment, generateUserAssessment } from './ai-service.js';
 import { initAuthGuard } from './auth-guard.js';
+
 initAuthGuard();
 
 // Nutrient display mappings
@@ -30,44 +30,49 @@ const nutrientLabels = {
 
 async function initOutput() {
   try {
-    // 1. Fetch the data saved during the confirm step
-    const record = await localforage.getItem("lastSubmittedRecord");
+    // 1. Get the meal ID from the URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const mealId = urlParams.get('id');
 
-    if (!record) {
-      document.getElementById("basicInfo").innerHTML = "<p>No recent meal data found. Please upload a meal first.</p>";
+    if (!mealId) {
+      document.getElementById("basicInfo").innerHTML = "<p>No meal ID provided. Please go back and upload a meal.</p>";
       return;
     }
 
-    // 2. Render Image
-    const imgUrl = record.image_url || record.image?.dataUrl;
+    // 2. Fetch the definitive data directly from Supabase
+    const mealData = await getMeal(mealId);
+
+    if (!mealData) {
+      document.getElementById("basicInfo").innerHTML = "<p>Meal not found in the database.</p>";
+      return;
+    }
+
+    // 3. Render Image
+    const imgUrl = mealData.image_url;
     if (imgUrl) {
       document.getElementById("mealImageContainer").innerHTML = `
                 <img src="${imgUrl}" alt="Uploaded Meal" style="max-width:100%; max-height: 300px; border-radius:10px; margin-bottom:20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             `;
     }
 
-    // 3. Aggregate data for the whole meal
-    const aggregatedData = {};
-    record.nutrition_data.forEach(item => {
-      Object.keys(item).forEach(key => {
-        if (typeof item[key] === 'number') {
-          aggregatedData[key] = (aggregatedData[key] || 0) + item[key];
-        }
-      });
-    });
+    // 4. Extract data for the whole meal
+    // Since logCompleteMeal already aggregated the nutrition into mealData.nutritions, we just use it directly!
+    const aggregatedData = mealData.nutritions || {};
+    const foodNames = mealData.food_items && mealData.food_items.length > 0
+      ? mealData.food_items.map(f => f.food_name).join(', ')
+      : 'Unknown Items';
 
-    const foodNames = record.food_items.map(f => f.item).join(', ');
-    const totalWeight = record.food_items.reduce((sum, f) => sum + (f.serving_size_g * f.portion), 0);
-    const formattedDate = new Date(record.datetime).toLocaleString();
+    const totalWeight = aggregatedData.serving_size_g || 0;
+    const formattedDate = new Date(mealData.created_at).toLocaleString();
 
-    // 4. Render Basic Info
+    // 5. Render Basic Info
     document.getElementById("basicInfo").innerHTML = `
             <p><strong>Date & Time:</strong> ${formattedDate}</p>
             <p><strong>Detected Foods:</strong> ${foodNames}</p>
             <p><strong>Total Estimated Weight:</strong> ${totalWeight} g</p>
         `;
 
-    // 5. Render Nutrition Table
+    // 6. Render Nutrition Table
     const tbody = document.querySelector("#nutritionTable tbody");
     tbody.innerHTML = ''; // Clear table
 
@@ -87,9 +92,9 @@ async function initOutput() {
       tbody.innerHTML += row;
     });
 
-    // 6. Run Clinical AI Assessment Pipeline
-    // Make sure 'userID' matches exactly how it was saved in localforage during the previous step
-    await runClinicalAssessment(record.userID);
+    // 7. Run Clinical AI Assessment Pipeline
+    // We pass the user_id from the meal, the mealId, and the full mealData to save an extra fetch
+    await runClinicalAssessment(mealData.user_id, mealData);
 
   } catch (err) {
     console.error("Failed to load output data:", err);
@@ -97,27 +102,16 @@ async function initOutput() {
   }
 }
 
-async function runClinicalAssessment(userId) {
+async function runClinicalAssessment(userId, currentMealData) {
   const summaryContainer = document.getElementById("aiSummary");
-  summaryContainer.innerHTML = "<p><em>Analyzing meal and 14-day trend...</em></p>";
+  summaryContainer.innerHTML = "<p><em>Analyzing 14-day trend...</em></p>";
 
   try {
-    // Fetch all user meals (assuming they are ordered by created_at descending from Supabase)
+    // Fetch all user meals and the user profile
     const allUserMeals = await getUserMeals(userId);
-
-    if (!allUserMeals || allUserMeals.length === 0) {
-      summaryContainer.innerHTML = "<p>Assessment unavailable. No database records found.</p>";
-      return;
-    }
-
-    // The most recent meal is the one we just submitted
-    const currentMealData = allUserMeals[0];
-    const mealId = currentMealData.id;
-
-    // Fetch user profile for biometrics and medical notes
     const userProfile = await getUserProfile(userId);
 
-    // Filter meals for the past 14 days (including the current one)
+    // Filter meals for the past 14 days
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -125,17 +119,15 @@ async function runClinicalAssessment(userId) {
       new Date(meal.created_at) >= twoWeeksAgo
     );
 
-    // 1. Generate the Meal Assessment (Current meal only)
-    const mealEvaluation = await generateMealAssessment(userProfile, currentMealData);
+    // 1. Grab the current meal evaluation straight from the database!
+    const mealAssessmentText = currentMealData.assessment_text || "No specific assessment recorded for this meal.";
+    const mealStatus = currentMealData.status !== null ? currentMealData.status : 0;
 
-    // 2. Generate the User Assessment (14-day trend)
+    // 2. Generate only the User Assessment (14-day trend) dynamically
     const userEvaluation = await generateUserAssessment(userProfile, pastTwoWeeksMeals);
 
-    // Update database statuses asynchronously
-    await Promise.all([
-      updateMeal(mealId, { status: mealEvaluation.meal_status }),
-      updateUserProfile(userId, { status: userEvaluation.user_status })
-    ]);
+    // Update database status for the overall user
+    await updateUserProfile(userId, { status: userEvaluation.user_status });
 
     // Render the combined results to the UI
     summaryContainer.innerHTML = `
@@ -143,7 +135,7 @@ async function runClinicalAssessment(userId) {
             
             <div style="margin-bottom: 1.5rem;">
                 <h4 style="margin-bottom: 0.5rem; color: #4b5563;">Current Meal Evaluation</h4>
-                <p style="margin-bottom:0; line-height:1.5;">${mealEvaluation.meal_assessment_text}</p>
+                <p style="margin-bottom:0; line-height:1.5;">${mealAssessmentText}</p>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
@@ -152,7 +144,7 @@ async function runClinicalAssessment(userId) {
             </div>
 
             <div style="font-size: 0.9em; padding: 12px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; display: flex; justify-content: space-around;">
-                <span><strong>Meal Risk Level:</strong> ${getStatusBadge(mealEvaluation.meal_status)}</span>
+                <span><strong>Meal Risk Level:</strong> ${getStatusBadge(mealStatus)}</span>
                 <span><strong>Overall Patient Risk Level:</strong> ${getStatusBadge(userEvaluation.user_status)}</span>
             </div>
         `;

@@ -1,7 +1,8 @@
-import localforage from 'localforage';
-import { searchUSDA, mapToNutritionSchema } from './ai-service.js';
-import { logCompleteMeal, uploadMealImage } from './supabase.js';
-import { getCurrentUser } from './auth-guard.js';
+import { searchUSDA, mapToNutritionSchema, generateMealAssessment } from './ai-service.js';
+import { logCompleteMeal, uploadMealImage, getUserProfile } from './supabase.js';
+import { getCurrentUser, initAuthGuard } from './auth-guard.js';
+
+initAuthGuard()
 
 const ingredientList = document.getElementById('ingredientList');
 const addItemBtn = document.getElementById('addItemBtn');
@@ -113,38 +114,35 @@ confirmBtn.addEventListener('click', async () => {
 
         loadingText.textContent = 'Saving meal data...';
 
-        // 4. Derive status: 0=healthy, 1=warning, 2=intervention
-        const totalCalories = finalNutritionData.reduce((sum, item) => sum + (item.calories_kcal || 0), 0);
-        const totalCarbs = finalNutritionData.reduce((sum, item) => sum + (item.total_carbs_g || 0), 0);
-        const totalSugar = finalNutritionData.reduce((sum, item) => sum + (item.total_sugar_g || 0), 0);
+        // 4. AI-Powered Meal Assessment: Derive status based on user profile
+        loadingText.textContent = 'Evaluating meal against health profile...';
 
-        let mealStatus = 0;
-        if (totalCalories > 1200 || totalCarbs > 150 || totalSugar > 80) mealStatus = 2;
-        else if (totalCalories > 800 || totalCarbs > 100) mealStatus = 1;
+        // Fetch the user's clinical profile for personalized assessment
+        const userProfile = await getUserProfile(currentUser.id);
+
+        // Aggregate nutrition to pass into the AI
+        const aggregatedNutrition = finalNutritionData.reduce((acc, item) => {
+            Object.keys(item).forEach(key => {
+                if (typeof item[key] === 'number') acc[key] = (acc[key] || 0) + item[key];
+            });
+            return acc;
+        }, {});
+
+        // Call the multi-agent clinical workflow
+        const aiAssessment = await generateMealAssessment(userProfile, aggregatedNutrition);
+        const mealStatus = aiAssessment.meal_status;
+        const mealAssessmentText = aiAssessment.meal_assessment_text;
+
+        loadingText.textContent = 'Saving meal data...';
 
         // 5. Save everything to Database, passing the REAL finalImageUrl
-        await logCompleteMeal(
+        const savedMeal = await logCompleteMeal(
             currentUser.id,
             finalImageUrl,
             finalNutritionData,
-            mealStatus
+            mealStatus,
+            mealAssessmentText
         );
-
-        // 6. Save to localforage for immediate UI feedback if needed
-        const recordData = {
-            userID: currentUser.id,
-            datetime: new Date().toISOString(),
-            image: uploadedImage, // Keep local base64 for fast rendering if needed
-            image_url: finalImageUrl, // Store the permanent URL too
-            food_items: ingredients,
-            nutrition_data: finalNutritionData
-        };
-
-        try {
-            await localforage.setItem('lastSubmittedRecord', recordData);
-        } catch (err) {
-            console.error("Error saving data to localforage:", err);
-        }
 
         // Success UI routing
         success.textContent = 'Meal saved successfully!';
@@ -154,7 +152,10 @@ confirmBtn.addEventListener('click', async () => {
         sessionStorage.removeItem('uploadedImage');
         sessionStorage.removeItem('ingredients');
 
-        setTimeout(() => { window.location.href = 'output.html'; }, 1000);
+        // Redirect strictly using the URL parameter
+        setTimeout(() => {
+            window.location.href = `output.html?id=${savedMeal.id}`;
+        }, 1000);
 
     } catch (err) {
         console.error('Error:', err);

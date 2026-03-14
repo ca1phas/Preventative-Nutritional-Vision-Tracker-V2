@@ -90,7 +90,8 @@ export const mealSchema = {
             "enum": [0, 1, 2],
             "description": "0 = Healthy, 1 = Warning, 2 = Alert",
             "nullable": true
-        }
+        },
+        "assessment_text": { "type": "string", "nullable": true } // <-- ADDED THIS LINE
     },
     "required": ["user_id"],
     "additionalProperties": false

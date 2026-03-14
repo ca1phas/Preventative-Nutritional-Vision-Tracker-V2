@@ -110,7 +110,7 @@ export async function generateClinicalRubric(userProfile) {
             { role: "system", content: systemPrompt },
             { role: "user", content: prompt }
         ],
-        max_completion_tokens: 10000,
+        max_completion_tokens: 1000,
         temperature: 0.1,
         top_p: 0.9,
     };
@@ -172,7 +172,7 @@ export async function generateMealAssessment(userProfile, rawCurrentMeal) {
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
-            max_completion_tokens: 10000,
+            max_completion_tokens: 1000,
             temperature: 0.1,
             top_p: 0.9,
         };
@@ -223,7 +223,7 @@ export async function generateUserAssessment(userProfile, rawMeals) {
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
-            max_completion_tokens: 10000,
+            max_completion_tokens: 1000,
             temperature: 0.1,
             top_p: 0.9,
         };

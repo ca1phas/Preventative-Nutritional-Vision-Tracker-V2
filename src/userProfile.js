@@ -142,7 +142,6 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
         weight: parseFloat(userWeight.value),
         height: parseFloat(userHeight.value),
         medical_notes: medicalNotes.value.trim() || null,
-        status: 0,
     };
 
     try {

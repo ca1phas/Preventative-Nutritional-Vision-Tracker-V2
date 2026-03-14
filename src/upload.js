@@ -1,5 +1,6 @@
 import { analyzeFoodImage } from './ai-service.js';
 import { initAuthGuard } from './auth-guard.js';
+
 initAuthGuard()
 
 const uploadForm = document.getElementById('uploadForm');

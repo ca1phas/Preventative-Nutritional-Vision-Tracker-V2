@@ -81,6 +81,23 @@ export async function updateUserProfile(id, updates) {
 }
 
 // ==========================================
+// USERS - GET ALL (for admin dashboard)
+// ==========================================
+export async function getAllUsers() {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, name, email, age, gender, medical_notes, is_admin, status, created_at')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    } catch (err) {
+        throw new Error('Failed to fetch users: ' + err.message);
+    }
+}
+
+// ==========================================
 // NUTRITIONS CRUD
 // ==========================================
 export async function createNutrition(nutritionData) {
@@ -198,7 +215,7 @@ export async function uploadMealImage(base64DataUrl, originalFileName, userId) {
 // ==========================================
 // MASTER PIPELINE: LOG COMPLETE MEAL
 // ==========================================
-export async function logCompleteMeal(userId, imageUrl, finalNutritionData, mealStatus) {
+export async function logCompleteMeal(userId, imageUrl, finalNutritionData, mealStatus, assessmentText) {
     // List of allowed keys that match our database schema exactly
     const schemaKeys = [
         'serving_size_g', 'calories_kcal', 'total_water_ml', 'protein_g', 'total_carbs_g',
@@ -233,14 +250,15 @@ export async function logCompleteMeal(userId, imageUrl, finalNutritionData, meal
         .single();
     if (nutritionError) throw new Error('Failed to save total nutrition: ' + nutritionError.message);
 
-    // 3. Insert Meal
+    // 3. Insert Meal (Update this block)
     const { data: mealInsert, error: mealError } = await supabase
         .from('meals')
         .insert({
             user_id: userId,
             nutrition_id: nutritionInsert.id,
             image_url: imageUrl || null,
-            status: mealStatus
+            status: mealStatus,
+            assessment_text: assessmentText
         })
         .select('id')
         .single();
