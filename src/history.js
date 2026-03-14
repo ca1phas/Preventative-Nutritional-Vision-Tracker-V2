@@ -272,7 +272,7 @@ function normalizeStatus(statusValue) {
 }
 
 function statusLabel(status) {
-  if (status === 'warning') return 'Warning';
+  if (status === 'warning') return 'Alert';
   if (status === 'intervention') return 'Intervention';
   return 'Healthy';
 }

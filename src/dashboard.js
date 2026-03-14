@@ -127,7 +127,7 @@ function renderTable(patients) {
                 <td>BMI: ${bmi}</td>
                 <td>${getStatusBadge(user.status)}</td>
                 <td>
-                    <a href="result.html?userID=${encodeURIComponent(user.id)}" class="btn-view">View</a>
+                    <a href="userDashboard.html" class="btn-view" data-user-id="${escapeHtml(user.id)}" data-user-name="${escapeHtml(user.name || '')}">View</a>
                 </td>
             </tr>
         `;
@@ -257,6 +257,25 @@ async function loadDashboard() {
 searchInput?.addEventListener('input', () => refresh());
 statusFilter?.addEventListener('change', () => refresh());
 sortSelect?.addEventListener('change', () => refresh());
+
+// Open user dashboard in user context from admin table view.
+tableBody?.addEventListener('click', (event) => {
+    const viewLink = event.target.closest('.btn-view');
+    if (!viewLink) return;
+
+    event.preventDefault();
+
+    const targetUserId = viewLink.getAttribute('data-user-id');
+    const targetUserName = viewLink.getAttribute('data-user-name') || targetUserId;
+
+    if (targetUserId) {
+        sessionStorage.setItem('supabaseUserId', targetUserId);
+    }
+    sessionStorage.setItem('userID', targetUserName || '');
+    sessionStorage.setItem('isUserAuthenticated', 'true');
+
+    window.location.href = 'userDashboard.html';
+});
 
 // Handle Logout
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
