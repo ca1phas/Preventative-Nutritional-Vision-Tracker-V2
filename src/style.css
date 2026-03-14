@@ -255,6 +255,206 @@ body {
   color: #3c3;
 }
 
+/* Dashboard - Pie Chart Section (Top Center) */
+.dashboard-pie-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.pie-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 520px;
+  width: 100%;
+}
+
+.pie-chart-with-legend {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pie-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.pie-chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pie-chart-legend .legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Dashboard Controls - Search, Filter, Sort Bars */
+.dashboard-controls {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-box-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #374151;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #64748b;
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.15);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-label i {
+  color: #64748b;
+}
+
+.filter-select {
+  min-width: 180px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #374151;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #64748b;
+}
+
+
+.pie-chart-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem;
+  border: 1px solid #edf0f3;
+}
+
+.pie-chart-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.pie-chart-title i {
+  color: #64748b;
+}
+
+.pie-chart-container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .dashboard-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box-wrap {
+    min-width: 0;
+  }
+
+  .filter-wrap,
+  .sort-wrap {
+    flex: 1;
+  }
+
+  .filter-select,
+  .filter-wrap .filter-select,
+  .sort-wrap .filter-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pie-chart-with-legend {
+    flex-direction: column;
+  }
+
+  .pie-chart-container {
+    width: 200px;
+    height: 200px;
+  }
+}
+
 /* Table Styles */
 .table-card {
   background: white;
@@ -322,6 +522,13 @@ body {
   background: #fee2e2;
   color: #991b1b;
 }
+
+/* Status badges for integer 0-4 */
+.badge-status-0 { background: #d1fae5; color: #065f46; }
+.badge-status-1 { background: #dbeafe; color: #1e40af; }
+.badge-status-2 { background: #fef3c7; color: #92400e; }
+.badge-status-3 { background: #fed7aa; color: #c2410c; }
+.badge-status-4 { background: #fee2e2; color: #991b1b; }
 
 .btn-view {
   color: #64748b;
@@ -562,7 +769,7 @@ body {
 }
 
 .nutrition-card.calories {
-  background: #fde7ef;
+  background: #dbeafe;
 }
 
 .nutrition-card.protein {
@@ -570,19 +777,11 @@ body {
 }
 
 .nutrition-card.carbs {
-  background: #ffe8d6;
-}
-
-.nutrition-card.water {
-  background: #dbeafe;
+  background: #fef3c7;
 }
 
 .nutrition-card.fats {
   background: #e9d5ff;
-}
-
-.nutrition-card.fiber {
-  background: hwb(46 74% 0%);  
 }
 
 .nutrition-card p:first-child {
@@ -597,7 +796,7 @@ body {
 }
 
 .nutrition-card.calories p:last-child {
-  color: #be123c;
+  color: #1e40af;
 }
 
 .nutrition-card.protein p:last-child {
@@ -605,11 +804,7 @@ body {
 }
 
 .nutrition-card.carbs p:last-child {
-  color: #9a3412;
-}
-
-.nutrition-card.water p:last-child {
-  color: #1d4ed8;
+  color: #92400e;
 }
 
 .nutrition-card.fats p:last-child {
@@ -740,14 +935,6 @@ body {
   padding: 0.95rem;
 }
 
-.history-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.75rem;
-  line-height: 1.35;
-}
-
 .history-meta-row {
   display: flex;
   justify-content: space-between;
@@ -771,32 +958,6 @@ body {
   font-size: 0.82rem;
   padding: 0.38rem 0.82rem;
   cursor: default;
-}
-
-.history-card-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.history-view-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.42rem 0.9rem;
-  border-radius: 999px;
-  background: #64748b;
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 700;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.history-view-link:hover {
-  background: #475569;
-  transform: translateY(-1px);
 }
 
 .history-status-btn.status-healthy {
