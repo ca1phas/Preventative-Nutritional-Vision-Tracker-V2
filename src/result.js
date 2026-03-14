@@ -99,6 +99,12 @@ function displayUserDetails(userID) {
     fatsEl.textContent = `${userData.fats} g`;
 }
 
+// ===== LOGOUT =====
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+});
+
 // Smart navigation - if viewing from admin dashboard, go back to admin dashboard
 if (viewingUserID) {
     const backBtn = document.getElementById('backToDashboard');

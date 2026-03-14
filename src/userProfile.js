@@ -66,7 +66,7 @@ async function fetchUserById(userId) {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, age, gender, medical_notes, weight, height')
+        .select('id, name, age, gender, medical_notes, weight, height, status')
         .eq('id', userId)
         .maybeSingle();
 
@@ -79,7 +79,7 @@ async function fetchUserByName(name) {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, age, gender, medical_notes, weight, height')
+        .select('id, name, age, gender, medical_notes, weight, height, status')
         .ilike('name', name)
         .limit(1)
         .maybeSingle();
@@ -91,7 +91,7 @@ async function fetchUserByName(name) {
 async function fetchLatestUserRecord() {
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, age, gender, medical_notes, weight, height')
+        .select('id, name, age, gender, medical_notes, weight, height, status')
         .order('updated_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false, nullsFirst: false })
         .limit(1)
@@ -145,6 +145,7 @@ async function loadUserProfile() {
 
     resolvedDbUserId = data.id;
     sessionStorage.setItem('supabaseUserId', data.id);
+    sessionStorage.setItem('supabaseUserStatus', String(data.status ?? 0));
 
     setProfileFormValues(data);
     if (source === 'latest' && !isUuid(currentUser)) {
@@ -179,7 +180,8 @@ profileForm.addEventListener('submit', async (e) => {
         gender: userGenderInput.value,
         weight: parseFloat(userWeightInput.value),
         height: parseFloat(userHeightInput.value),
-        medical_notes: medicalNotesInput.value.trim()
+        medical_notes: medicalNotesInput.value.trim(),
+        status: parseInt(sessionStorage.getItem('supabaseUserStatus') ?? '0', 10)
     };
 
     const recordIdToSave = isUuid(resolvedDbUserId)
