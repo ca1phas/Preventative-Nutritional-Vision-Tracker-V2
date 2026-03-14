@@ -1,7 +1,7 @@
 import './style.css';
 import { supabase, getUserProfile, getUserMeals } from './supabase.js';
 import { generateDashboardInsights } from './ai-service.js';
-import { initAuthGuard } from './auth-guard.js';
+import { initAuthGuard, isAdmin, getCurrentUser } from './auth-guard.js';
 
 // Initialize Authentication Guard
 initAuthGuard();
@@ -11,7 +11,8 @@ const state = {
     offset: 0,
     chartInstance: null,
     budget: 2000,
-    userDB: {}
+    userDB: {},
+    targetUserId: null // Keeps track of whose data we are currently viewing
 };
 
 function toggleLoading(show) {
@@ -21,9 +22,8 @@ function toggleLoading(show) {
 
 // ===== DATA FETCHING =====
 
-async function fetchUserProfileAndBudget() {
-    const userId = sessionStorage.getItem('supabaseUserId');
-    if (!userId) return;
+async function fetchUserProfileAndBudget(userId) {
+    if (!userId) return null;
 
     try {
         const profile = await getUserProfile(userId);
@@ -37,13 +37,14 @@ async function fetchUserProfileAndBudget() {
             const tdee = Math.round(bmr * 1.2);
             state.budget = tdee > 0 ? tdee : 2000;
         }
+        return profile;
     } catch (error) {
         console.error('Error fetching user profile for budget:', error);
+        return null;
     }
 }
 
-async function fetchUserNutritionData() {
-    const userId = sessionStorage.getItem('supabaseUserId');
+async function fetchUserNutritionData(userId) {
     if (!userId) return {};
 
     try {
@@ -106,11 +107,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggleLoading(true);
 
     try {
-        const [userDB] = await Promise.all([
-            fetchUserNutritionData(),
-            fetchUserProfileAndBudget()
+        // 1. Resolve Target User ID using actual Supabase auth state
+        const currentUser = await getCurrentUser();
+
+        // If Supabase says no one is logged in, boot them to the homepage
+        if (!currentUser || !currentUser.id) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const loggedInUserId = currentUser.id;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedUserId = urlParams.get('userId');
+
+        // Check if an Admin is trying to view a specific patient
+        if (requestedUserId && requestedUserId !== loggedInUserId) {
+            const adminStatus = await isAdmin();
+            if (adminStatus) {
+                state.targetUserId = requestedUserId;
+
+                // Add a handy back button for admins
+                const titleEl = document.querySelector('.page-header h2');
+                if (titleEl) {
+                    titleEl.innerHTML = '<a href="dashboard.html" style="font-size: 0.6em; color: #6b7280; text-decoration: none; display:block; margin-bottom: 5px;"><i class="fas fa-arrow-left"></i> Back to Admin Portal</a> <i class="fas fa-chart-line"></i> Patient Dashboard';
+                }
+            } else {
+                // If a normal user tries to snoop another ID, default them back to their own
+                state.targetUserId = loggedInUserId;
+            }
+        } else {
+            state.targetUserId = loggedInUserId;
+        }
+
+        // 2. Fetch Data
+        const [userDB, profile] = await Promise.all([
+            fetchUserNutritionData(state.targetUserId),
+            fetchUserProfileAndBudget(state.targetUserId)
         ]);
+
         state.userDB = userDB;
+
+        // 3. Update UI to reflect who we are viewing
+        if (profile && state.targetUserId !== loggedInUserId) {
+            const displayEl = document.getElementById('currentUserDisplay');
+            if (displayEl) {
+                displayEl.innerHTML = `<i class="fas fa-user-md"></i> Viewing Patient Profile: <strong>${profile.name || 'Unknown Patient'}</strong>`;
+                displayEl.style.color = "#ef4444"; // Red to clearly indicate admin view
+            }
+        }
+
     } catch (err) {
         console.error("Initialization error:", err);
     } finally {
@@ -173,11 +219,6 @@ function setupEventListeners() {
             updateDashboard();
         }
     });
-
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = 'index.html';
-    });
 }
 
 // ===== AI INSIGHTS ENGINE =====
@@ -185,17 +226,16 @@ function setupEventListeners() {
 async function loadAIInsights() {
     const container = document.getElementById('insightsContainer');
     if (!container) return;
-    container.innerHTML = '<p style="padding: 1rem; color: #6b7280;"><i class="fas fa-spinner fa-spin"></i> <em>Analyzing your 14-day history to generate clinical insights...</em></p>';
+    container.innerHTML = '<p style="padding: 1rem; color: #6b7280;"><i class="fas fa-spinner fa-spin"></i> <em>Analyzing 14-day history to generate clinical insights...</em></p>';
 
     try {
-        const userId = sessionStorage.getItem('supabaseUserId');
-        if (!userId) {
-            container.innerHTML = '<p>Please log in to see AI insights.</p>';
+        if (!state.targetUserId) {
+            container.innerHTML = '<p>Unable to load patient ID.</p>';
             return;
         }
 
-        const userProfile = await getUserProfile(userId);
-        const allUserMeals = await getUserMeals(userId);
+        const userProfile = await getUserProfile(state.targetUserId);
+        const allUserMeals = await getUserMeals(state.targetUserId);
 
         // Filter for last 14 days
         const twoWeeksAgo = new Date();

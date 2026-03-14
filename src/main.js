@@ -14,16 +14,18 @@ document.getElementById('contactTeamBtn')?.addEventListener('click', () => {
 // Need user to login first
 // If user clicks User Dashboard or AdminPortal Button it also redirects them to login if they are not logged in 
 
-// Admin Portal
-document.getElementById('adminRole')?.addEventListener('click', (e) => {
+// Admin 
+document.getElementById('adminRole')?.addEventListener('click', async (e) => {
   e.preventDefault();
-  window.location.href = 'dashboard.html';
+  const user = await getCurrentUser();
+  window.location.href = user ? 'dashboard.html' : 'login.html';
 });
 
-// User Dashboard
-document.getElementById('userRole')?.addEventListener('click', (e) => {
+// User
+document.getElementById('userRole')?.addEventListener('click', async (e) => {
   e.preventDefault();
-  window.location.href = 'userDashboard.html';
+  const user = await getCurrentUser();
+  window.location.href = user ? 'userDashboard.html' : 'login.html';
 });
 
 async function requireLogin(e) {

@@ -1,4 +1,4 @@
-import { authenticateUser, logoutUser } from './supabase.js';
+import { authenticateUser } from './supabase.js';
 import { initAuthGuard } from './auth-guard.js';
 initAuthGuard();
 
@@ -8,8 +8,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   try {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    await authenticateUser(email, password)
-    window.location.href = 'userProfile.html';
+    const { _, isAdmin } = await authenticateUser(email, password)
+    window.location.href = isAdmin ? "dashboard.html" : 'userDashboard.html';
   } catch (err) {
     alert('Invalid user ID or password. Please try again.');
   }

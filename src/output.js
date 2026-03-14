@@ -1,7 +1,8 @@
-import { getUserProfile, getUserMeals, getMeal, updateMeal, updateUserProfile } from './supabase.js';
-import { generateMealAssessment, generateUserAssessment } from './ai-service.js';
+import { getUserProfile, getUserMeals, getMeal, updateUserProfile, logoutUser } from './supabase.js';
+import { generateUserAssessment } from './ai-service.js';
 import { initAuthGuard } from './auth-guard.js';
 
+// Protect the route
 initAuthGuard();
 
 // Nutrient display mappings
@@ -32,10 +33,10 @@ async function initOutput() {
   try {
     // 1. Get the meal ID from the URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const mealId = urlParams.get('id');
+    const mealId = urlParams.get('mealId');
 
     if (!mealId) {
-      document.getElementById("basicInfo").innerHTML = "<p>No meal ID provided. Please go back and upload a meal.</p>";
+      document.getElementById("basicInfo").innerHTML = "<p>No meal ID provided. Please go back and select a meal.</p>";
       return;
     }
 
@@ -51,12 +52,11 @@ async function initOutput() {
     const imgUrl = mealData.image_url;
     if (imgUrl) {
       document.getElementById("mealImageContainer").innerHTML = `
-                <img src="${imgUrl}" alt="Uploaded Meal" style="max-width:100%; max-height: 300px; border-radius:10px; margin-bottom:20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            `;
+        <img src="${imgUrl}" alt="Uploaded Meal" style="max-width:100%; max-height: 300px; border-radius:10px; margin-bottom:20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      `;
     }
 
     // 4. Extract data for the whole meal
-    // Since logCompleteMeal already aggregated the nutrition into mealData.nutritions, we just use it directly!
     const aggregatedData = mealData.nutritions || {};
     const foodNames = mealData.food_items && mealData.food_items.length > 0
       ? mealData.food_items.map(f => f.food_name).join(', ')
@@ -67,10 +67,10 @@ async function initOutput() {
 
     // 5. Render Basic Info
     document.getElementById("basicInfo").innerHTML = `
-            <p><strong>Date & Time:</strong> ${formattedDate}</p>
-            <p><strong>Detected Foods:</strong> ${foodNames}</p>
-            <p><strong>Total Estimated Weight:</strong> ${totalWeight} g</p>
-        `;
+      <p><strong>Date & Time:</strong> ${formattedDate}</p>
+      <p><strong>Detected Foods:</strong> ${foodNames}</p>
+      <p><strong>Total Estimated Weight:</strong> ${totalWeight} g</p>
+    `;
 
     // 6. Render Nutrition Table
     const tbody = document.querySelector("#nutritionTable tbody");
@@ -84,30 +84,29 @@ async function initOutput() {
       value = Math.round(value * 100) / 100;
 
       const row = `
-                <tr>
-                    <td>${nutrientLabels[key]}</td>
-                    <td><strong>${value}</strong></td>
-                </tr>
-            `;
+        <tr>
+          <td>${nutrientLabels[key]}</td>
+          <td><strong>${value}</strong></td>
+        </tr>
+      `;
       tbody.innerHTML += row;
     });
 
     // 7. Run Clinical AI Assessment Pipeline
-    // We pass the user_id from the meal, the mealId, and the full mealData to save an extra fetch
     await runClinicalAssessment(mealData.user_id, mealData);
 
   } catch (err) {
     console.error("Failed to load output data:", err);
-    document.getElementById("basicInfo").innerHTML = "<p style='color:red;'>Error loading meal data.</p>";
+    document.getElementById("basicInfo").innerHTML = "<p style='color:red;'>Error loading meal data. Please try again.</p>";
   }
 }
 
 async function runClinicalAssessment(userId, currentMealData) {
   const summaryContainer = document.getElementById("aiSummary");
-  summaryContainer.innerHTML = "<p><em>Analyzing 14-day trend...</em></p>";
+  summaryContainer.innerHTML = "<p><em>Loading clinical assessment...</em></p>";
 
   try {
-    // Fetch all user meals and the user profile
+    // Fetch all user meals and the user profile for trend analysis
     const allUserMeals = await getUserMeals(userId);
     const userProfile = await getUserProfile(userId);
 
@@ -119,39 +118,39 @@ async function runClinicalAssessment(userId, currentMealData) {
       new Date(meal.created_at) >= twoWeeksAgo
     );
 
-    // 1. Grab the current meal evaluation straight from the database!
+    // 1. Grab the current meal evaluation straight from the database
     const mealAssessmentText = currentMealData.assessment_text || "No specific assessment recorded for this meal.";
     const mealStatus = currentMealData.status !== null ? currentMealData.status : 0;
 
-    // 2. Generate only the User Assessment (14-day trend) dynamically
+    // 2. Generate the 14-day trend dynamically
     const userEvaluation = await generateUserAssessment(userProfile, pastTwoWeeksMeals);
 
-    // Update database status for the overall user
+    // Update database status for the overall user based on the new trend
     await updateUserProfile(userId, { status: userEvaluation.user_status });
 
     // Render the combined results to the UI
     summaryContainer.innerHTML = `
-            <h3 style="margin-top:0; color:#1f2937; margin-bottom: 1rem;"><i class="fas fa-stethoscope"></i> Clinical AI Assessment</h3>
-            
-            <div style="margin-bottom: 1.5rem;">
-                <h4 style="margin-bottom: 0.5rem; color: #4b5563;">Current Meal Evaluation</h4>
-                <p style="margin-bottom:0; line-height:1.5;">${mealAssessmentText}</p>
-            </div>
+      <h3 style="margin-top:0; color:#1f2937; margin-bottom: 1rem;"><i class="fas fa-stethoscope"></i> Clinical AI Assessment</h3>
+      
+      <div style="margin-bottom: 1.5rem;">
+          <h4 style="margin-bottom: 0.5rem; color: #4b5563;">Current Meal Evaluation</h4>
+          <p style="margin-bottom:0; line-height:1.5;">${mealAssessmentText}</p>
+      </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <h4 style="margin-bottom: 0.5rem; color: #4b5563;">14-Day Trend Analysis</h4>
-                <p style="margin-bottom:0; line-height:1.5;">${userEvaluation.user_assessment_text}</p>
-            </div>
+      <div style="margin-bottom: 1.5rem;">
+          <h4 style="margin-bottom: 0.5rem; color: #4b5563;">14-Day Trend Analysis</h4>
+          <p style="margin-bottom:0; line-height:1.5;">${userEvaluation.user_assessment_text}</p>
+      </div>
 
-            <div style="font-size: 0.9em; padding: 12px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; display: flex; justify-content: space-around;">
-                <span><strong>Meal Risk Level:</strong> ${getStatusBadge(mealStatus)}</span>
-                <span><strong>Overall Patient Risk Level:</strong> ${getStatusBadge(userEvaluation.user_status)}</span>
-            </div>
-        `;
+      <div style="font-size: 0.9em; padding: 12px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; display: flex; justify-content: space-around;">
+          <span><strong>Meal Risk Level:</strong> ${getStatusBadge(mealStatus)}</span>
+          <span><strong>Overall Patient Risk Level:</strong> ${getStatusBadge(userEvaluation.user_status)}</span>
+      </div>
+    `;
 
   } catch (err) {
     console.error("AI Assessment Error:", err);
-    summaryContainer.innerHTML = "<p style='color:red;'>Failed to generate clinical assessment. Please check the console for details.</p>";
+    summaryContainer.innerHTML = "<p style='color:red;'>Failed to load clinical assessment.</p>";
   }
 }
 
@@ -168,6 +167,24 @@ function getStatusBadge(statusCode) {
       return `<span>${statusCode}</span>`;
   }
 }
+
+// ===== LOGOUT HANDLER =====
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const button = e.target;
+  button.disabled = true;
+  button.textContent = 'Logging out...';
+
+  try {
+    await logoutUser();
+    window.location.replace('index.html');
+  } catch (err) {
+    console.error('Logout error:', err);
+    alert('Logout failed: ' + err.message);
+    button.disabled = false;
+    button.textContent = 'Logout';
+  }
+});
 
 // Run immediately
 initOutput();

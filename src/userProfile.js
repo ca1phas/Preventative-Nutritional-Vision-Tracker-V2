@@ -1,22 +1,52 @@
-import './style.css';
-import { initAuthGuard } from './auth-guard.js';
-import { supabase, logoutUser, createUserProfile } from './supabase.js';
-import { getCurrentUser } from './auth-guard.js';
+import { initAuthGuard, getCurrentUser } from './auth-guard.js';
+import { supabase, createUserProfile } from './supabase.js';
 
+// ===== AUTH INITIALIZATION =====
 initAuthGuard();
-
 const currentUser = await getCurrentUser();
-console.log(currentUser);
-
 let isNewUser = false;
 
-// ===== SETUP BANNER =====
-function showSetupBanner() {
-    const form = document.getElementById('profileForm');
-    if (!form) return;
+// ===== DOM ELEMENTS =====
+const profileForm = document.getElementById('profileForm');
+const resetProfileBtn = document.getElementById('resetProfileBtn');
+const profileStatus = document.getElementById('profileStatus');
+const userNameInput = document.getElementById('userName');
+const userAgeInput = document.getElementById('userAge');
+const userGenderInput = document.getElementById('userGender');
+const userWeightInput = document.getElementById('userWeight');
+const userHeightInput = document.getElementById('userHeight');
+const medicalNotesInput = document.getElementById('medicalNotes');
+const userBMIInput = document.getElementById('userBMI');
+const currentUserDisplay = document.getElementById('currentUserDisplay');
 
-    const existing = document.getElementById('setupBanner');
-    if (existing) return;
+if (currentUserDisplay && currentUser) {
+    currentUserDisplay.textContent = `User: ${currentUser.email || currentUser.id}`;
+}
+
+// ===== UI STATUS HELPERS =====
+function setStatus(message, type = 'info') {
+    if (!profileStatus) return;
+
+    if (!message) {
+        profileStatus.style.display = 'none';
+        profileStatus.textContent = '';
+        return;
+    }
+
+    profileStatus.style.display = 'block';
+    profileStatus.textContent = message;
+    if (type === 'error') {
+        profileStatus.style.color = '#dc2626';
+    } else if (type === 'success') {
+        profileStatus.style.color = '#059669';
+    } else {
+        profileStatus.style.color = '#374151';
+    }
+}
+
+function showSetupBanner() {
+    if (!profileForm) return;
+    if (document.getElementById('setupBanner')) return;
 
     const banner = document.createElement('div');
     banner.id = 'setupBanner';
@@ -30,10 +60,9 @@ function showSetupBanner() {
         font-weight: 500;
     `;
     banner.textContent = '👋 Welcome! Please complete all fields below to set up your profile before continuing.';
-    form.prepend(banner);
+    profileForm.prepend(banner);
 
-    ['userName', 'userAge', 'userGender', 'userWeight', 'userHeight'].forEach(id => {
-        const el = document.getElementById(id);
+    [userNameInput, userAgeInput, userGenderInput, userWeightInput, userHeightInput].forEach(el => {
         if (el) el.required = true;
     });
 }
@@ -42,115 +71,115 @@ function hideSetupBanner() {
     document.getElementById('setupBanner')?.remove();
 }
 
-// ===== PROFILE SECTION =====
-async function loadUserProfile() {
-    try {
-        console.log('Current user ID:', currentUser.id);
+function setProfileFormValues(profile = {}) {
+    if (userNameInput) userNameInput.value = profile.name || '';
+    if (userAgeInput) userAgeInput.value = Number.isFinite(Number(profile.age)) ? profile.age : '';
+    if (userGenderInput) userGenderInput.value = (profile.gender || '').toLowerCase();
+    if (userWeightInput) userWeightInput.value = Number.isFinite(Number(profile.weight)) ? profile.weight : '';
+    if (userHeightInput) userHeightInput.value = Number.isFinite(Number(profile.height)) ? profile.height : '';
+    if (medicalNotesInput) medicalNotesInput.value = profile.medical_notes || '';
+    calculateBMI();
+}
 
+// ===== BMI CALCULATION =====
+function calculateBMI() {
+    if (!userWeightInput || !userHeightInput || !userBMIInput) return;
+
+    const weight = parseFloat(userWeightInput.value);
+    const height = parseFloat(userHeightInput.value);
+
+    if (weight && height) {
+        const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
+        userBMIInput.value = bmi;
+    } else {
+        userBMIInput.value = '';
+    }
+}
+
+userWeightInput?.addEventListener('input', calculateBMI);
+userHeightInput?.addEventListener('input', calculateBMI);
+
+// ===== LOAD PROFILE =====
+async function loadUserProfile() {
+    setStatus('Loading profile...', 'info');
+
+    try {
         const { data: profile, error } = await supabase
             .from('users')
             .select('*')
             .eq('id', currentUser.id)
             .maybeSingle();
 
-        if (error) {
-            console.error('Unexpected error fetching profile:', error);
-            alert('Failed to load your profile. Please refresh the page.');
-            return;
-        }
+        if (error) throw error;
 
         if (!profile) {
             console.log('No profile found. Prompting user to complete setup.');
             isNewUser = true;
             showSetupBanner();
+            setProfileFormValues({});
+            setStatus('No profile found yet. Fill in your details and click Save Profile.', 'info');
             return;
         }
 
         isNewUser = false;
         hideSetupBanner();
-        console.log('User found:', profile);
 
-        const fields = {
-            userName: profile.name,
-            userAge: profile.age,
-            userGender: profile.gender,
-            userWeight: profile.weight,
-            userHeight: profile.height,
-            medicalNotes: profile.medical_notes,
-        };
+        sessionStorage.setItem('profileComplete', 'true');
+        setProfileFormValues({
+            name: profile.name,
+            age: profile.age,
+            gender: profile.gender,
+            weight: profile.weight,
+            height: profile.height,
+            medical_notes: profile.medical_notes
+        });
 
-        for (const [id, value] of Object.entries(fields)) {
-            const el = document.getElementById(id);
-            if (el) el.value = value ?? '';
-            else console.error(`Element #${id} missing from HTML`);
-        }
-
-        calculateBMI();
+        setStatus('Profile loaded from database.', 'success');
 
     } catch (err) {
         console.error('Unexpected error in loadUserProfile:', err);
-        alert('Error loading profile: ' + err.message);
+        setStatus(`Unable to load profile: ${err.message}`, 'error');
     }
 }
 
-// ===== BMI =====
-function calculateBMI() {
-    const weight = parseFloat(document.getElementById('userWeight').value);
-    const height = parseFloat(document.getElementById('userHeight').value);
-
-    if (weight && height) {
-        const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
-        document.getElementById('userBMI').value = bmi;
-    }
-}
-
-document.getElementById('userWeight').addEventListener('input', calculateBMI);
-document.getElementById('userHeight').addEventListener('input', calculateBMI);
-
-// ===== FORM SUBMIT =====
-document.getElementById('profileForm').addEventListener('submit', async (e) => {
+// ===== SAVE / SUBMIT PROFILE =====
+profileForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const userName = document.getElementById('userName');
-    const userAge = document.getElementById('userAge');
-    const userGender = document.getElementById('userGender');
-    const userWeight = document.getElementById('userWeight');
-    const userHeight = document.getElementById('userHeight');
-    const medicalNotes = document.getElementById('medicalNotes');
-
-    if (!userName || !userAge || !userGender || !userWeight || !userHeight || !medicalNotes) {
-        alert('Error: One or more form fields are missing from the HTML.');
-        return;
-    }
-
     const missingValues = [];
-    if (!userName.value.trim()) missingValues.push('Name');
-    if (!userAge.value) missingValues.push('Age');
-    if (!userGender.value) missingValues.push('Gender');
-    if (!userWeight.value) missingValues.push('Weight');
-    if (!userHeight.value) missingValues.push('Height');
+    if (!userNameInput.value.trim()) missingValues.push('Name');
+    if (!userAgeInput.value) missingValues.push('Age');
+    if (!userGenderInput.value) missingValues.push('Gender');
+    if (!userWeightInput.value) missingValues.push('Weight');
+    if (!userHeightInput.value) missingValues.push('Height');
 
     if (missingValues.length > 0) {
-        alert(`Please fill in all required fields: ${missingValues.join(', ')}`);
+        const msg = `Please fill in all required fields: ${missingValues.join(', ')}`;
+        setStatus(msg, 'error');
+        alert(msg);
         return;
     }
 
     const profileData = {
-        name: userName.value.trim(),
-        age: parseInt(userAge.value),
-        gender: userGender.value,
-        weight: parseFloat(userWeight.value),
-        height: parseFloat(userHeight.value),
-        medical_notes: medicalNotes.value.trim() || null,
+        name: userNameInput.value.trim(),
+        age: parseInt(userAgeInput.value, 10),
+        gender: userGenderInput.value,
+        weight: parseFloat(userWeightInput.value),
+        height: parseFloat(userHeightInput.value),
+        medical_notes: medicalNotesInput.value.trim() || null,
     };
+
+    setStatus('Saving profile...', 'info');
 
     try {
         if (isNewUser) {
             await createUserProfile(currentUser.id, profileData);
             isNewUser = false;
             hideSetupBanner();
+            sessionStorage.setItem('profileComplete', 'true');
+            setStatus('Profile created successfully.', 'success');
             alert('Profile created successfully! Welcome aboard 🎉');
-            window.location.replace("userDashboard.html")
+            window.location.replace("userDashboard.html");
         } else {
             const { error } = await supabase
                 .from('users')
@@ -158,7 +187,7 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
                 .eq('id', currentUser.id);
 
             if (error) throw error;
-            alert('Profile saved successfully!');
+            setStatus('Profile saved successfully.', 'success');
         }
 
         console.log('Profile saved:', profileData);
@@ -166,25 +195,13 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
 
     } catch (err) {
         console.error('Error saving profile:', err);
-        alert('Failed to save profile: ' + err.message);
+        setStatus(`Failed to save profile: ${err.message}`, 'error');
     }
 });
 
-// ===== LOGOUT =====
-document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const button = e.target;
-    button.disabled = true;
-    button.textContent = 'Logging out...';
-
-    try {
-        await logoutUser();
-        window.location.replace('index.html');
-    } catch (err) {
-        console.error('Logout error:', err);
-        button.disabled = false;
-        button.textContent = 'Logout';
-    }
+// ===== EVENT LISTENERS =====
+resetProfileBtn?.addEventListener('click', () => {
+    loadUserProfile();
 });
 
 // ===== INITIALIZE =====

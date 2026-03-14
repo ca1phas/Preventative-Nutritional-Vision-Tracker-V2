@@ -1,8 +1,9 @@
 import { searchUSDA, mapToNutritionSchema, generateMealAssessment } from './ai-service.js';
-import { logCompleteMeal, uploadMealImage, getUserProfile } from './supabase.js';
+import { logCompleteMeal, uploadMealImage, getUserProfile, logoutUser } from './supabase.js';
 import { getCurrentUser, initAuthGuard } from './auth-guard.js';
 
-initAuthGuard()
+// Protect the route
+initAuthGuard();
 
 const ingredientList = document.getElementById('ingredientList');
 const addItemBtn = document.getElementById('addItemBtn');
@@ -84,7 +85,6 @@ confirmBtn.addEventListener('click', async () => {
         const currentUser = await getCurrentUser();
         if (!currentUser) throw new Error("User session expired. Please log in again.");
 
-        // Update loading text to reflect the upload step
         const loadingText = loading.querySelector('p');
 
         // 2. Upload the physical image to Supabase Storage FIRST
@@ -101,7 +101,7 @@ confirmBtn.addEventListener('click', async () => {
         loadingText.textContent = 'Estimating nutrition...';
         const finalNutritionData = [];
 
-        // 3. USDA + Gemini mapping per food item
+        // 3. USDA + AI mapping per food item
         for (const food of ingredients) {
             const aiFoodItem = {
                 food_name: food.item,
@@ -112,15 +112,11 @@ confirmBtn.addEventListener('click', async () => {
             finalNutritionData.push(nutritionRecord);
         }
 
-        loadingText.textContent = 'Saving meal data...';
-
-        // 4. AI-Powered Meal Assessment: Derive status based on user profile
         loadingText.textContent = 'Evaluating meal against health profile...';
 
-        // Fetch the user's clinical profile for personalized assessment
+        // 4. Fetch the user's clinical profile for personalized assessment
         const userProfile = await getUserProfile(currentUser.id);
 
-        // Aggregate nutrition to pass into the AI
         const aggregatedNutrition = finalNutritionData.reduce((acc, item) => {
             Object.keys(item).forEach(key => {
                 if (typeof item[key] === 'number') acc[key] = (acc[key] || 0) + item[key];
@@ -128,14 +124,13 @@ confirmBtn.addEventListener('click', async () => {
             return acc;
         }, {});
 
-        // Call the multi-agent clinical workflow
         const aiAssessment = await generateMealAssessment(userProfile, aggregatedNutrition);
         const mealStatus = aiAssessment.meal_status;
         const mealAssessmentText = aiAssessment.meal_assessment_text;
 
         loadingText.textContent = 'Saving meal data...';
 
-        // 5. Save everything to Database, passing the REAL finalImageUrl
+        // 5. Save everything to Database
         const savedMeal = await logCompleteMeal(
             currentUser.id,
             finalImageUrl,
@@ -144,7 +139,6 @@ confirmBtn.addEventListener('click', async () => {
             mealAssessmentText
         );
 
-        // Success UI routing
         success.textContent = 'Meal saved successfully!';
         success.classList.remove('hidden');
 
@@ -152,9 +146,9 @@ confirmBtn.addEventListener('click', async () => {
         sessionStorage.removeItem('uploadedImage');
         sessionStorage.removeItem('ingredients');
 
-        // Redirect strictly using the URL parameter
+        // Redirect properly using `mealId`
         setTimeout(() => {
-            window.location.href = `output.html?id=${savedMeal.id}`;
+            window.location.href = `output.html?mealId=${savedMeal.id}`;
         }, 1000);
 
     } catch (err) {
@@ -163,10 +157,27 @@ confirmBtn.addEventListener('click', async () => {
         actions.classList.remove('hidden');
     } finally {
         loading.classList.add('hidden');
-        // Reset loading text just in case it fails and they try again
         if (loading.querySelector('p')) {
             loading.querySelector('p').textContent = 'Estimating nutrition and submitting...';
         }
+    }
+});
+
+// ===== LOGOUT HANDLER =====
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const button = e.target;
+    button.disabled = true;
+    button.textContent = 'Logging out...';
+
+    try {
+        await logoutUser();
+        window.location.replace('index.html');
+    } catch (err) {
+        console.error('Logout error:', err);
+        alert('Logout failed: ' + err.message);
+        button.disabled = false;
+        button.textContent = 'Logout';
     }
 });
 

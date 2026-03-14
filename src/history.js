@@ -1,123 +1,65 @@
-import { initAuthGuard } from './auth-guard.js';
+import { supabase } from './supabase.js';
+import { initAuthGuard, getCurrentUser } from './auth-guard.js';
+
+// Initialize route protection
 initAuthGuard();
 
-const HISTORY_STORAGE_KEY = 'userMealHistory';
 const DEFAULT_MEAL_IMAGE = '/images/hero-background.jpg';
 
-// Central config for backend integration.
-// Update API_BASE_URL / endpoints / transformBackendRecord when backend is ready.
-const HISTORY_CONFIG = {
-  API_BASE_URL: '',
-  ENDPOINTS: {
-    listByUser: (userID) => `/api/history?userId=${encodeURIComponent(userID)}`,
-    listByUserAndDate: (userID, dateKey) =>
-      `/api/history?userId=${encodeURIComponent(userID)}&date=${encodeURIComponent(dateKey)}`,
-  },
-  REQUEST_TIMEOUT_MS: 12000,
-};
-
-const currentUser = 'DEMO_USER';
+// DOM Elements
 const historyUserDisplay = document.getElementById('historyUserDisplay');
 const historyDateFilter = document.getElementById('historyDateFilter');
 const historyDateClear = document.getElementById('historyDateClear');
-const historyDateClear = document.getElementById('historyDateClear');
 const historyCards = document.getElementById('historyCards');
 const historyEmptyState = document.getElementById('historyEmptyState');
-const logoutBtn = document.getElementById('logoutBtn');
 
-let resolvedDbUserId = sessionStorage.getItem('supabaseUserId') || null;
+let currentUserId = null;
 
-historyUserDisplay.textContent = `User: ${currentUser}`;
-
+// Initialize Page
 initializeHistoryPage();
 
 async function initializeHistoryPage() {
   try {
-    resolvedDbUserId = await resolveCurrentUserId();
+    const user = await getCurrentUser();
+
+    if (!user) {
+      console.error('No authenticated user found. Redirecting should be handled by auth-guard.');
+      return;
+    }
+
+    currentUserId = user.id;
+
+    // Display user email or generic text if unavailable
+    historyUserDisplay.textContent = `User: ${user.email || 'Authenticated User'}`;
+
+    // Load all meals initially
+    await loadMeals('');
+
+    // Event Listeners for Filters
+    historyDateFilter.addEventListener('change', () => {
+      loadMeals(historyDateFilter.value);
+    });
+
+    historyDateClear.addEventListener('click', () => {
+      historyDateFilter.value = '';
+      loadMeals('');
+    });
+
   } catch (error) {
-    console.error('Unable to resolve history user id:', error);
+    console.error('Error initializing history page:', error);
   }
-
-  await loadMeals('');
-
-  historyDateFilter.addEventListener('change', () => {
-    loadMeals(historyDateFilter.value);
-  });
-
-  historyDateClear.addEventListener('click', () => {
-    historyDateFilter.value = '';
-    loadMeals('');
-  });
-
-  logoutBtn.addEventListener('click', () => {
-    sessionStorage.clear();
-    window.location.href = 'index.html';
-  });
-}
-
-async function resolveCurrentUserId() {
-  if (isUuid(resolvedDbUserId)) {
-    sessionStorage.setItem('supabaseUserId', resolvedDbUserId);
-    return resolvedDbUserId;
-  }
-
-  if (isUuid(currentUser)) {
-    sessionStorage.setItem('supabaseUserId', currentUser);
-    return currentUser;
-  }
-
-  const { data: namedUser, error: nameError } = await supabase
-    .from('users')
-    .select('id, name')
-    .ilike('name', currentUser)
-    .limit(1)
-    .maybeSingle();
-
-  if (nameError) {
-    throw nameError;
-  }
-
-  if (namedUser?.id) {
-    sessionStorage.setItem('supabaseUserId', namedUser.id);
-    return namedUser.id;
-  }
-
-  const { data: latestUser, error: latestError } = await supabase
-    .from('users')
-    .select('id')
-    .order('updated_at', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false, nullsFirst: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (latestError) {
-    throw latestError;
-  }
-
-  if (latestUser?.id) {
-    sessionStorage.setItem('supabaseUserId', latestUser.id);
-    return latestUser.id;
-  }
-
-  return null;
-}
-
-function isUuid(value) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
 }
 
 async function loadMeals(selectedDate) {
   historyCards.innerHTML = '';
   historyEmptyState.classList.add('hidden');
 
+  // Base query tied securely to the authenticated user's ID
   let query = supabase
     .from('meals')
     .select('id, user_id, nutrition_id, image_url, status, created_at, updated_at')
-    .order('created_at', { ascending: true });
-
-  if (resolvedDbUserId) {
-    query = query.eq('user_id', resolvedDbUserId);
-  }
+    .eq('user_id', currentUserId)
+    .order('created_at', { ascending: false }); // Best practice for history: newest first
 
   if (selectedDate) {
     const start = `${selectedDate}T00:00:00`;
@@ -125,7 +67,7 @@ async function loadMeals(selectedDate) {
     query = query.gte('created_at', start).lte('created_at', end);
   }
 
-  const { data, error } = await query;
+  const { data: mealsData, error } = await query;
 
   if (error) {
     console.error('Error loading meals:', error);
@@ -133,10 +75,12 @@ async function loadMeals(selectedDate) {
     return;
   }
 
-  const meals = Array.isArray(data) ? data : [];
+  const meals = Array.isArray(mealsData) ? mealsData : [];
   const mealIds = meals.map((meal) => meal.id).filter(Boolean);
 
   let foodItemsByMealId = {};
+
+  // Only query food items if we actually found meals
   if (mealIds.length > 0) {
     const { data: foodItems, error: foodItemsError } = await supabase
       .from('food_items')
@@ -157,6 +101,7 @@ async function loadMeals(selectedDate) {
     }
   }
 
+  // Combine meals with their respective food items
   const enrichedMeals = meals.map((meal) => ({
     ...meal,
     foodItems: foodItemsByMealId[meal.id] || [],
@@ -186,8 +131,9 @@ function renderMeals(meals, selectedDate) {
   }
 
   const groupedMeals = groupMealsByDate(meals);
+  // Sort dates descending so newest dates appear first
   const orderedDateKeys = Object.keys(groupedMeals).sort((left, right) => {
-    return new Date(left).getTime() - new Date(right).getTime();
+    return new Date(right).getTime() - new Date(left).getTime();
   });
 
   orderedDateKeys.forEach((dateKey, index) => {
@@ -223,6 +169,8 @@ function buildMealCard(meal) {
   const dateValue = new Date(meal.created_at);
   const foodNames = meal.foodItems.map((item) => item.food_name).filter(Boolean);
   const foodNameText = foodNames.length > 0 ? foodNames.join(', ') : 'Unnamed meal';
+
+  // Point to output/details view with specific ID
   const outputUrl = `output.html?mealId=${encodeURIComponent(meal.id)}`;
 
   card.innerHTML = `
@@ -242,6 +190,7 @@ function buildMealCard(meal) {
     </div>
   `;
 
+  // Make the entire card clickable
   card.addEventListener('click', (event) => {
     if (event.target.closest('.history-view-link')) {
       return;
