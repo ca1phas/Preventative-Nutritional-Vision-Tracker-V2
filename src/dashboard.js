@@ -1,5 +1,5 @@
-import { supabase, logoutUser } from './supabase.js';
-import { initAuthGuard } from './auth-guard.js';
+import { supabase, logoutUser, getAllUsers } from './supabase.js';
+import { initAuthGuard, getCurrentUser, isAdmin } from './auth-guard.js';
 initAuthGuard();
 
 // Admin auth check — uses is_admin flag from users table

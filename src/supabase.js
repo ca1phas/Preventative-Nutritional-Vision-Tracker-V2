@@ -97,6 +97,8 @@ export async function getAllUsers() {
     }
 }
 
+
+
 // ==========================================
 // NUTRITIONS CRUD
 // ==========================================
@@ -211,6 +213,9 @@ export async function uploadMealImage(base64DataUrl, originalFileName, userId) {
         throw new Error('Failed to upload image: ' + error.message);
     }
 }
+
+
+
 
 // ==========================================
 // MASTER PIPELINE: LOG COMPLETE MEAL
