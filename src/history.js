@@ -20,333 +20,279 @@ const currentUser = 'DEMO_USER';
 const historyUserDisplay = document.getElementById('historyUserDisplay');
 const historyDateFilter = document.getElementById('historyDateFilter');
 const historyDateClear = document.getElementById('historyDateClear');
+const historyDateClear = document.getElementById('historyDateClear');
 const historyCards = document.getElementById('historyCards');
 const historyEmptyState = document.getElementById('historyEmptyState');
 const logoutBtn = document.getElementById('logoutBtn');
 
+let resolvedDbUserId = sessionStorage.getItem('supabaseUserId') || null;
+
 historyUserDisplay.textContent = `User: ${currentUser}`;
-
-const demoHistoryData = [
-  {
-    userID: currentUser,
-    datetime: '2026-03-07T20:00:00',
-    image: { dataUrl: DEFAULT_MEAL_IMAGE },
-    status: 'intervention',
-  },
-  {
-    userID: currentUser,
-    datetime: '2026-03-08T13:00:00',
-    image: { dataUrl: DEFAULT_MEAL_IMAGE },
-    status: 'healthy',
-  },
-  {
-    userID: currentUser,
-    datetime: '2026-03-08T19:15:00',
-    image: { dataUrl: DEFAULT_MEAL_IMAGE },
-    status: 'warning',
-  },
-
-];
 
 initializeHistoryPage();
 
-logoutBtn.addEventListener('click', () => {
-  sessionStorage.removeItem('isUserAuthenticated');
-  sessionStorage.removeItem('userID');
-  window.location.href = 'index.html';
-});
-
-// ── Modal wiring ──────────────────────────────────────────
-const mealModal = document.getElementById('mealModal');
-const mealModalClose = document.getElementById('mealModalClose');
-const mealModalImage = document.getElementById('mealModalImage');
-const mealModalDate = document.getElementById('mealModalDate');
-const mealModalTime = document.getElementById('mealModalTime');
-const mealModalStatus = document.getElementById('mealModalStatus');
-
-function openMealModal(record) {
-  const imageSrc = record.image?.dataUrl || record.image?.url || DEFAULT_MEAL_IMAGE;
-  const dateKey = toDateKey(record.datetime);
-
-  mealModalImage.src = imageSrc;
-  mealModalDate.textContent = formatDateLabel(dateKey);
-  mealModalTime.textContent = formatTime24(record.datetime);
-  mealModalStatus.textContent = statusLabel(record.status);
-  mealModalStatus.className = `history-status-btn status-${record.status}`;
-
-  mealModal.classList.remove('hidden');
-  document.body.classList.add('modal-open');
-}
-
-function closeMealModal() {
-  mealModal.classList.add('hidden');
-  document.body.classList.remove('modal-open');
-  mealModalImage.src = '';
-}
-
-mealModalClose.addEventListener('click', closeMealModal);
-
-// Close when clicking the backdrop
-mealModal.addEventListener('click', (e) => {
-  if (e.target === mealModal) closeMealModal();
-});
-
-// Close on Escape key
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !mealModal.classList.contains('hidden')) closeMealModal();
-});
-
 async function initializeHistoryPage() {
-  const historyRecords = await getUserHistory(currentUser);
-  const sortedRecords = sortByDateAscending(historyRecords);
+  try {
+    resolvedDbUserId = await resolveCurrentUserId();
+  } catch (error) {
+    console.error('Unable to resolve history user id:', error);
+  }
 
-  renderHistoryCards(sortedRecords, '');
+  await loadMeals('');
 
   historyDateFilter.addEventListener('change', () => {
-    renderHistoryCards(sortedRecords, historyDateFilter.value);
+    loadMeals(historyDateFilter.value);
   });
 
   historyDateClear.addEventListener('click', () => {
     historyDateFilter.value = '';
-    renderHistoryCards(sortedRecords, '');
+    loadMeals('');
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
   });
 }
 
-async function getUserHistory(userID) {
-  const backendRecords = await fetchHistoryFromBackend(userID);
-  if (backendRecords.length > 0) {
-    return backendRecords;
+async function resolveCurrentUserId() {
+  if (isUuid(resolvedDbUserId)) {
+    sessionStorage.setItem('supabaseUserId', resolvedDbUserId);
+    return resolvedDbUserId;
   }
 
-  // Fallback mode keeps page usable before backend integration completes.
-  const merged = [];
-
-  const storedList = readStoredHistoryList();
-  merged.push(...storedList.filter((record) => record.userID === userID));
-
-  const sessionRecord = JSON.parse(
-    sessionStorage.getItem('lastSubmittedRecord') || 'null',
-  );
-
-  if (sessionRecord && (sessionRecord.userID || userID) === userID) {
-    merged.push({
-      userID,
-      datetime: sessionRecord.datetime || new Date().toISOString(),
-      image: sessionRecord.image || { dataUrl: '/images/hero-background.jpg' },
-      status: deriveStatus(sessionRecord),
-    });
+  if (isUuid(currentUser)) {
+    sessionStorage.setItem('supabaseUserId', currentUser);
+    return currentUser;
   }
 
-  if (merged.length === 0) {
-    return demoHistoryData;
+  const { data: namedUser, error: nameError } = await supabase
+    .from('users')
+    .select('id, name')
+    .ilike('name', currentUser)
+    .limit(1)
+    .maybeSingle();
+
+  if (nameError) {
+    throw nameError;
   }
 
-  return merged.map(normalizeRecord).filter((record) => !!record.datetime);
-}
-
-async function fetchHistoryFromBackend(userID) {
-  const url = `${HISTORY_CONFIG.API_BASE_URL}${HISTORY_CONFIG.ENDPOINTS.listByUser(userID)}`;
-
-  try {
-    const response = await fetchWithTimeout(url, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.warn('History API returned non-OK response:', response.status);
-      return [];
-    }
-
-    const payload = await response.json();
-    const records = extractBackendList(payload);
-
-    return records.map(transformBackendRecord).map(normalizeRecord);
-  } catch (error) {
-    console.warn('History API is unavailable, using fallback data:', error);
-    return [];
-  }
-}
-
-function extractBackendList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.records)) return payload.records;
-  return [];
-}
-
-function transformBackendRecord(record) {
-  // Map backend fields to UI model here.
-  // Expected normalized output: { userID, datetime, image: { dataUrl|url }, status }
-  return {
-    userID: record?.userID || record?.user_id || currentUser,
-    datetime:
-      record?.datetime || record?.createdAt || record?.created_at || record?.date,
-    image: {
-      dataUrl: record?.imageDataUrl || record?.image_data_url,
-      url: record?.imageUrl || record?.image_url,
-    },
-    status: (record?.status || '').toLowerCase() || deriveStatus(record),
-  };
-}
-
-async function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, HISTORY_CONFIG.REQUEST_TIMEOUT_MS);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-function readStoredHistoryList() {
-  const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-  if (!raw) return [];
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map(normalizeRecord);
-  } catch (error) {
-    console.error('Unable to parse stored history list:', error);
-    return [];
-  }
-}
-
-function normalizeRecord(record) {
-  const safeDate = record?.datetime || record?.date || null;
-  return {
-    userID: record?.userID || currentUser,
-    datetime: safeDate,
-    image: record?.image || { dataUrl: DEFAULT_MEAL_IMAGE },
-    status: (record?.status || 'healthy').toLowerCase(),
-  };
-}
-
-function sortByDateAscending(records) {
-  return [...records].sort(
-    (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime(),
-  );
-}
-
-function deriveStatus(record) {
-  if (typeof record?.status === 'string') {
-    return record.status.toLowerCase();
+  if (namedUser?.id) {
+    sessionStorage.setItem('supabaseUserId', namedUser.id);
+    return namedUser.id;
   }
 
-  const nutrition = Array.isArray(record?.nutrition_data)
-    ? record.nutrition_data
-    : [];
-  const totalCarbs = nutrition.reduce(
-    (sum, item) => sum + Number(item?.total_carbs_g || 0),
-    0,
-  );
+  const { data: latestUser, error: latestError } = await supabase
+    .from('users')
+    .select('id')
+    .order('updated_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (totalCarbs > 150) return 'intervention';
-  if (totalCarbs > 80) return 'warning';
-  return 'healthy';
+  if (latestError) {
+    throw latestError;
+  }
+
+  if (latestUser?.id) {
+    sessionStorage.setItem('supabaseUserId', latestUser.id);
+    return latestUser.id;
+  }
+
+  return null;
 }
 
-function renderHistoryCards(records, selectedDateKey) {
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
+}
+
+async function loadMeals(selectedDate) {
   historyCards.innerHTML = '';
   historyEmptyState.classList.add('hidden');
 
-  const filtered = selectedDateKey
-    ? records.filter((record) => toDateKey(record.datetime) === selectedDateKey)
-    : records;
+  let query = supabase
+    .from('meals')
+    .select('id, user_id, nutrition_id, image_url, status, created_at, updated_at')
+    .order('created_at', { ascending: true });
 
-  if (filtered.length === 0) {
+  if (resolvedDbUserId) {
+    query = query.eq('user_id', resolvedDbUserId);
+  }
+
+  if (selectedDate) {
+    const start = `${selectedDate}T00:00:00`;
+    const end = `${selectedDate}T23:59:59.999`;
+    query = query.gte('created_at', start).lte('created_at', end);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error loading meals:', error);
     historyEmptyState.classList.remove('hidden');
     return;
   }
 
-  if (selectedDateKey) {
-    // Single date: flat card grid, no grouping header needed
+  const meals = Array.isArray(data) ? data : [];
+  const mealIds = meals.map((meal) => meal.id).filter(Boolean);
+
+  let foodItemsByMealId = {};
+  if (mealIds.length > 0) {
+    const { data: foodItems, error: foodItemsError } = await supabase
+      .from('food_items')
+      .select('id, meal_id, nutrition_id, food_name, created_at, updated_at')
+      .in('meal_id', mealIds)
+      .order('created_at', { ascending: true });
+
+    if (foodItemsError) {
+      console.error('Error loading food items for history:', foodItemsError);
+    } else {
+      foodItemsByMealId = (foodItems || []).reduce((groups, item) => {
+        if (!groups[item.meal_id]) {
+          groups[item.meal_id] = [];
+        }
+        groups[item.meal_id].push(item);
+        return groups;
+      }, {});
+    }
+  }
+
+  const enrichedMeals = meals.map((meal) => ({
+    ...meal,
+    foodItems: foodItemsByMealId[meal.id] || [],
+  }));
+
+  renderMeals(enrichedMeals, selectedDate);
+}
+
+function renderMeals(meals, selectedDate) {
+  historyCards.innerHTML = '';
+
+  if (!meals.length) {
+    historyEmptyState.classList.remove('hidden');
+    return;
+  }
+
+  historyEmptyState.classList.add('hidden');
+
+  if (selectedDate) {
     const grid = document.createElement('div');
     grid.className = 'history-cards-grid';
-    filtered.forEach((record) => grid.appendChild(buildCard(record)));
-    historyCards.appendChild(grid);
-  } else {
-    // All dates: group by date, sorted oldest → newest
-    const groups = groupByDate(filtered);
-    const dateKeys = Object.keys(groups);
-
-    dateKeys.forEach((dateKey, index) => {
-      const section = document.createElement('div');
-      section.className = 'history-date-group';
-
-      const heading = document.createElement('h3');
-      heading.className = 'history-date-heading';
-      heading.innerHTML = `<i class="fas fa-calendar-day"></i> ${formatDateLabel(dateKey)}`;
-      section.appendChild(heading);
-
-      const grid = document.createElement('div');
-      grid.className = 'history-cards-grid';
-      groups[dateKey].forEach((record) => grid.appendChild(buildCard(record)));
-      section.appendChild(grid);
-
-      historyCards.appendChild(section);
-
-      // Light-grey separator between groups (not after the last one)
-      if (index < dateKeys.length - 1) {
-        const sep = document.createElement('hr');
-        sep.className = 'history-date-separator';
-        historyCards.appendChild(sep);
-      }
+    meals.forEach((meal) => {
+      grid.appendChild(buildMealCard(meal));
     });
+    historyCards.appendChild(grid);
+    return;
   }
-}
 
-function groupByDate(records) {
-  const groups = {};
-  records.forEach((record) => {
-    const key = toDateKey(record.datetime);
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(record);
+  const groupedMeals = groupMealsByDate(meals);
+  const orderedDateKeys = Object.keys(groupedMeals).sort((left, right) => {
+    return new Date(left).getTime() - new Date(right).getTime();
   });
-  return groups;
+
+  orderedDateKeys.forEach((dateKey, index) => {
+    const section = document.createElement('section');
+    section.className = 'history-date-group';
+
+    const heading = document.createElement('h3');
+    heading.className = 'history-date-heading';
+    heading.innerHTML = `<i class="fas fa-calendar-day"></i> ${formatDateHeading(dateKey)}`;
+    section.appendChild(heading);
+
+    const grid = document.createElement('div');
+    grid.className = 'history-cards-grid';
+    groupedMeals[dateKey].forEach((meal) => {
+      grid.appendChild(buildMealCard(meal));
+    });
+    section.appendChild(grid);
+    historyCards.appendChild(section);
+
+    if (index < orderedDateKeys.length - 1) {
+      const separator = document.createElement('hr');
+      separator.className = 'history-date-separator';
+      historyCards.appendChild(separator);
+    }
+  });
 }
 
-function buildCard(record) {
+function buildMealCard(meal) {
   const card = document.createElement('article');
   card.className = 'history-meal-card';
 
-  const imageSrc = record.image?.dataUrl || record.image?.url || DEFAULT_MEAL_IMAGE;
-  const dateKey = toDateKey(record.datetime);
+  const status = normalizeStatus(meal.status);
+  const dateValue = new Date(meal.created_at);
+  const foodNames = meal.foodItems.map((item) => item.food_name).filter(Boolean);
+  const foodNameText = foodNames.length > 0 ? foodNames.join(', ') : 'Unnamed meal';
+  const outputUrl = `output.html?mealId=${encodeURIComponent(meal.id)}`;
 
   card.innerHTML = `
     <div class="history-card-image-wrap">
-      <img src="${imageSrc}" alt="Meal image on ${formatDateDDMMYY(dateKey)}" class="history-card-image" />
-      <div class="history-card-overlay"><i class="fas fa-expand-alt"></i></div>
+      <img src="${escapeAttribute(meal.image_url || DEFAULT_MEAL_IMAGE)}" alt="Meal image" class="history-card-image" />
     </div>
     <div class="history-card-content">
+      <h4 class="history-card-title">${escapeHtml(foodNameText)}</h4>
       <div class="history-meta-row">
-        <p class="history-meta-item"><i class="fas fa-calendar"></i> ${formatDateDDMMYY(dateKey)}</p>
-        <p class="history-meta-item"><i class="fas fa-clock"></i> ${formatTime24(record.datetime)}</p>
+        <span class="history-meta-item"><i class="fas fa-calendar-alt"></i> ${formatCardDate(dateValue)}</span>
+        <span class="history-meta-item"><i class="fas fa-clock"></i> ${formatCardTime(dateValue)}</span>
       </div>
-      <button class="history-status-btn status-${record.status}" type="button">
-        ${statusLabel(record.status)}
-      </button>
+      <div class="history-card-actions">
+        <button class="history-status-btn status-${status}" type="button">${statusLabel(status)}</button>
+        <a href="${outputUrl}" class="history-view-link">View more</a>
+      </div>
     </div>
   `;
 
-  card.addEventListener('click', () => openMealModal(record));
+  card.addEventListener('click', (event) => {
+    if (event.target.closest('.history-view-link')) {
+      return;
+    }
+    window.location.href = outputUrl;
+  });
 
   return card;
 }
 
-function formatDateLabel(dateKey) {
-  if (!dateKey) return '-';
-  const date = new Date(dateKey + 'T00:00:00');
+function groupMealsByDate(meals) {
+  return meals.reduce((groups, meal) => {
+    const dateKey = toDateKey(meal.created_at);
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(meal);
+    return groups;
+  }, {});
+}
+
+function normalizeStatus(statusValue) {
+  const numericStatus = Number(statusValue);
+  if (numericStatus === 0) return 'healthy';
+  if (numericStatus === 1) return 'warning';
+  if (numericStatus === 2) return 'intervention';
+
+  const stringStatus = String(statusValue || '').toLowerCase();
+  if (stringStatus === 'healthy' || stringStatus === 'warning' || stringStatus === 'intervention') {
+    return stringStatus;
+  }
+
+  return 'healthy';
+}
+
+function statusLabel(status) {
+  if (status === 'warning') return 'Alert';
+  if (status === 'intervention') return 'Intervention';
+  return 'Healthy';
+}
+
+function toDateKey(value) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateHeading(dateKey) {
+  const date = new Date(`${dateKey}T00:00:00`);
   return date.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -354,35 +300,31 @@ function formatDateLabel(dateKey) {
   });
 }
 
-function toDateKey(datetimeString) {
-  const date = new Date(datetimeString);
-  if (Number.isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function formatCardDate(date) {
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  });
 }
 
-function formatDateDDMMYY(dateKey) {
-  if (!dateKey) return '-';
-  const [year, month, day] = dateKey.split('-');
-  return `${day}/${month}/${year.slice(-2)}`;
+function formatCardTime(date) {
+  return date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
 
-function formatTime24(datetimeString) {
-  const date = new Date(datetimeString);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
-function statusLabel(status) {
-  if (status === 'healthy') return 'Healthy';
-  if (status === 'warning') return 'Warning';
-  if (status === 'intervention') return 'Intervention';
-  return 'Unknown';
+function escapeAttribute(value) {
+  return escapeHtml(value);
 }
-
-

@@ -20,9 +20,7 @@
             <a href="userProfile.html" id="profileTab" class="active"
               >Profile</a
             >
-            <a href="userDashboard.html" id="dashboardTab"
-              >Dashboard</a
-            >
+            <a href="userDashboard.html" id="dashboardTab">Dashboard</a>
             <a href="history.html" id="historyTab">History</a>
             <a href="upload.html">Upload Meal</a>
             <a href="index.html">Homepage</a>
@@ -55,10 +53,15 @@
 
         <div class="profile-card">
           <form id="profileForm">
+            <p
+              id="profileStatus"
+              style="display: none; margin-bottom: 1rem"
+            ></p>
             <div class="form-grid">
               <div class="form-group">
                 <label for="userName"
-                  ><i class="fas fa-user"></i> Full Name <span style="color: red; font-size: 20px;">*</span></label
+                  ><i class="fas fa-user"></i> Full Name
+                  <span style="color: red; font-size: 20px">*</span></label
                 >
                 <input
                   type="text"
@@ -70,7 +73,8 @@
 
               <div class="form-group">
                 <label for="userAge"
-                  ><i class="fas fa-birthday-cake"></i> Age <span style="color: red; font-size: 20px;">*</span></label
+                  ><i class="fas fa-birthday-cake"></i> Age
+                  <span style="color: red; font-size: 20px">*</span></label
                 >
                 <input
                   type="number"
@@ -84,7 +88,8 @@
 
               <div class="form-group">
                 <label for="userGender"
-                  ><i class="fas fa-venus-mars"></i> Gender <span style="color: red; font-size: 20px;">*</span></label
+                  ><i class="fas fa-venus-mars"></i> Gender
+                  <span style="color: red; font-size: 20px">*</span></label
                 >
                 <select id="userGender" required>
                   <option value="">Select gender</option>
@@ -96,7 +101,8 @@
 
               <div class="form-group">
                 <label for="userWeight"
-                  ><i class="fas fa-weight"></i> Weight (kg) <span style="color: red; font-size: 20px;">*</span></label
+                  ><i class="fas fa-weight"></i> Weight (kg)
+                  <span style="color: red; font-size: 20px">*</span></label
                 >
                 <input
                   type="number"
@@ -110,7 +116,8 @@
 
               <div class="form-group">
                 <label for="userHeight"
-                  ><i class="fas fa-ruler-vertical"></i> Height (cm) <span style="color: red; font-size: 20px;">*</span></label
+                  ><i class="fas fa-ruler-vertical"></i> Height (cm)
+                  <span style="color: red; font-size: 20px">*</span></label
                 >
                 <input
                   type="number"
@@ -137,7 +144,9 @@
 
             <div class="form-group">
               <label for="medicalNotes"
-                ><i class="fas fa-notes-medical"></i> Medical Notes (If don't have put "None") <span style="color: red; font-size: 20px;">*</span></label
+                ><i class="fas fa-notes-medical"></i> Medical Notes (If don't
+                have put "None")
+                <span style="color: red; font-size: 20px">*</span></label
               >
               <textarea
                 id="medicalNotes"
