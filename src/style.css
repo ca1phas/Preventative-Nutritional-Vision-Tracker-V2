@@ -2597,6 +2597,24 @@ body.homepage {
   padding: 2.5rem;
 }
 
+.profile-subtitle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.profile-text {
+  color: #6b7280;
+  margin: 0;
+}
+
+.user-email {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
