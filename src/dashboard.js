@@ -1,19 +1,7 @@
 import { supabase } from './supabase.js';
 
 // Admin auth check — uses is_admin flag from users table
-async function checkAdminAuth() {
-    const userID = sessionStorage.getItem('userID');
-    if (!userID) { redirectToHome(); return; }
-
-    const { data, error } = await supabase
-        .from('users')
-        .select('is_admin')
-        .eq('id', userID)
-        .single();
-
-    if (error || !data?.is_admin) { redirectToHome(); }
-}
-
+// TODO
 function redirectToHome() {
     alert('Admin access required.');
     window.location.href = 'index.html';

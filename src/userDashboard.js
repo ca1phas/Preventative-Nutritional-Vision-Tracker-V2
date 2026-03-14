@@ -5,14 +5,7 @@ import { supabase } from './supabase.js';
 const USE_MOCK_DATA = true;
 
 // ===== AUTH CHECK =====
-function checkUserAuth() {
-    if (sessionStorage.getItem('isUserAuthenticated') !== 'true') {
-        window.location.href = 'index.html';
-    }
-}
-checkUserAuth();
-
-const currentUser = sessionStorage.getItem('userID');
+// TODO
 
 // ===== MOCK DATA (remove this section when integrating with backend) =====
 const MOCK_MONTHLY_SUMMARY = {

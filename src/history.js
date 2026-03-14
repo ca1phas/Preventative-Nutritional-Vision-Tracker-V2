@@ -15,7 +15,7 @@ const HISTORY_CONFIG = {
 
 checkUserAuth();
 
-const currentUser = sessionStorage.getItem('userID') || 'DEMO_USER';
+const currentUser = 'DEMO_USER';
 const historyUserDisplay = document.getElementById('historyUserDisplay');
 const historyDateFilter = document.getElementById('historyDateFilter');
 const historyDateClear = document.getElementById('historyDateClear');

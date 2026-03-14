@@ -5,15 +5,7 @@ import './style.css';
 const USE_MOCK_DATA = true;
 
 // ===== AUTH CHECK =====
-function checkUserAuth() {
-    if (sessionStorage.getItem('isUserAuthenticated') !== 'true') {
-        window.location.href = 'index.html';
-    }
-}
-checkUserAuth();
-
-const currentUser = sessionStorage.getItem('userID');
-document.getElementById('currentUserDisplay').textContent = `User: ${currentUser}`;
+// TODO
 
 // ===== MOCK DATA (remove this section when integrating with backend) =====
 const MOCK_USER_PROFILE = {

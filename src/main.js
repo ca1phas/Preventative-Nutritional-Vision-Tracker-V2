@@ -6,17 +6,8 @@ document.getElementById('contactTeamBtn')?.addEventListener('click', () => {
 });
 
 // need login before click "Start Tracking" and "Get Started Now" button
-function requireLogin(e) {
-  e.preventDefault();
-  const isAuthenticated = sessionStorage.getItem('isUserAuthenticated') === 'true';
+// Need user to login first
 
-  if (isAuthenticated) {
-    window.location.href = 'upload.html';
-  } else {
-    alert('Please login to access this feature.');
-    window.location.href = 'login.html';
-  }
-}
 
 document.getElementById('getStartedBtn')?.addEventListener('click', requireLogin);
 document.getElementById('startTrackingBtn')?.addEventListener('click', requireLogin);
