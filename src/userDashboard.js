@@ -30,7 +30,7 @@ function toggleLoading(show) {
 
 async function fetchUserProfile() {
 
-    const userId = sessionStorage.getItem('userID');
+    const userId = sessionStorage.getItem('supabaseUserId');
     // for demo, direct inser uuid
     // const userId = 'b5e3b7b4-e1f0-43ba-81cf-3b75c6755e5d';
 
@@ -58,7 +58,7 @@ async function fetchUserProfile() {
 }
 
 async function fetchUserNutritionData() {
-    const userId = sessionStorage.getItem('userID');
+    const userId = sessionStorage.getItem('supabaseUserId');
 
     // for demo, direct inser uuid
     // const userId = 'b5e3b7b4-e1f0-43ba-81cf-3b75c6755e5d';
