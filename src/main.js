@@ -1,6 +1,6 @@
 import { logoutUser } from './supabase.js';
-import { getCurrentUser } from './auth-guard.js';
-import { initAuthGuard } from './auth-guard.js';
+import { getCurrentUser, initAuthGuard } from './auth-guard.js';
+
 initAuthGuard();
 
 document.getElementById('learnMoreBtn')?.addEventListener('click', () => {
