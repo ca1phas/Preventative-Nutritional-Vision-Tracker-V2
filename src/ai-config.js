@@ -178,9 +178,9 @@ Only output 0 if the USDA database explicitly lists the value as 0 or you are ce
 // ==========================================
 // ASSESSMENT AI CONFIG
 // ==========================================
-export const assessmentSchema = {
+export const mealAssessmentSchema = {
     "type": "object",
-    "description": "The final health assessment of the meal and the user's 14-day trend.",
+    "description": "The health assessment of the current meal.",
     "properties": {
         "meal_assessment_text": {
             "type": "string",
@@ -189,23 +189,119 @@ export const assessmentSchema = {
         "meal_status": {
             "type": "integer",
             "description": "Must be exactly 0, 1, or 2. (0 = Healthy, 1 = Warning, 2 = Alert/Intervention)"
+        }
+    },
+    "required": ["meal_assessment_text", "meal_status"]
+};
+
+export const userAssessmentSchema = {
+    "type": "object",
+    "description": "The overall health assessment of the user's 14-day trend.",
+    "properties": {
+        "user_assessment_text": {
+            "type": "string",
+            "description": "A short, empathetic assessment of the user's dietary trend over the past 14 days."
         },
         "user_status": {
             "type": "integer",
-            "description": "Must be exactly 0, 1, or 2. Overall user status based on the current meal AND the past 14 days."
+            "description": "Must be exactly 0, 1, or 2. Overall user status based on the past 14 days."
         }
     },
-    "required": ["meal_assessment_text", "meal_status", "user_status"]
+    "required": ["user_assessment_text", "user_status"]
 };
 
-export const assessmentSystemInstruction = `
+export const mealAssessmentSystemInstruction = `
 You are an expert clinical nutritionist AI.
-Your task is to evaluate a patient's latest meal against their personal medical profile and their dietary history over the past 14 days.
+Your task is to evaluate a patient's latest meal against their personal medical profile.
 
 Evaluate based on these Status Codes:
 0 (Healthy): Within standard nutritional goals, balanced macros, safe for their medical profile.
 1 (Warning): Approaching limits (e.g., high sodium for a hypertensive patient, high sugar for a diabetic).
 2 (Alert): Dangerous or highly unbalanced intake requiring potential clinical intervention.
 
-Output a short, plain-text assessment, the meal's status code, and the updated overall user status code.
+Output a short, plain-text assessment and the meal's status code.
+`;
+
+export const userAssessmentSystemInstruction = `
+You are an expert clinical nutritionist AI.
+Your task is to evaluate a patient's dietary history over the past 14 days against their personal medical profile.
+
+Evaluate based on these Status Codes:
+0 (Healthy): Overall 14-day trend is within standard nutritional goals and safe.
+1 (Warning): Trend shows approaching limits or consistent minor imbalances.
+2 (Alert): Dangerous or highly unbalanced consistent intake requiring potential clinical intervention.
+
+Output a short, plain-text assessment and the overall user status code.
+`;
+
+export const dashboardInsightsSystemInstruction = `
+You are an expert clinical nutritionist AI.
+Your task is to evaluate a patient's dietary history over the past 14 days and generate specific insights.
+
+Categorize your insights exactly into these four areas:
+1. Good: Positive reinforcement of healthy habits.
+2. Improve: Constructive feedback on areas needing adjustment.
+3. Pattern: Behavioral eating patterns (e.g., meal timing, macro distributions).
+4. Risk: Any direct medical risks based on their profile and recent intake.
+
+IMPORTANT: You must return the response strictly as a JSON object matching the provided schema. Do not include markdown formatting.
+`;
+
+export const dashboardInsightsSchema = {
+    "type": "object",
+    "properties": {
+        "user_assessment_text": { "type": "string", "description": "Overall summary of the 14-day trend." },
+        "user_status": { "type": "integer", "description": "0 (Healthy), 1 (Warning), 2 (Alert)" },
+        "insight_good": {
+            "type": "object", "nullable": true,
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "required": ["heading", "description"]
+        },
+        "insight_improve": {
+            "type": "object", "nullable": true,
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "required": ["heading", "description"]
+        },
+        "insight_pattern": {
+            "type": "object", "nullable": true,
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "required": ["heading", "description"]
+        },
+        "insight_risk": {
+            "type": "object", "nullable": true,
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "required": ["heading", "description"]
+        }
+    },
+    "required": ["user_assessment_text", "user_status", "insight_good", "insight_improve", "insight_pattern", "insight_risk"]
+};
+
+// Add this to the bottom of ai-config.js
+
+export const clinicalRubricSchema = {
+    "type": "object",
+    "description": "A personalized clinical assessment plan based on a patient profile.",
+    "properties": {
+        "metabolic_summary": {
+            "type": "string",
+            "description": "A 2-sentence summary of the patient's metabolic state and primary risks."
+        },
+        "critical_nutrients": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of the specific database nutrient keys (e.g., 'sodium_mg', 'potassium_mg', 'total_sugar_g') that must be strictly monitored for this specific patient."
+        },
+        "evaluation_rules": {
+            "type": "string",
+            "description": "Custom rules for the assessor (e.g., 'Strictly flag any meal over 50g of carbs due to pre-diabetes')."
+        }
+    },
+    "required": ["metabolic_summary", "critical_nutrients", "evaluation_rules"]
+};
+
+export const clinicalRubricSystemInstruction = `
+You are a Lead Clinical Dietitian AI.
+Analyze the patient's profile (age, weight, conditions) and create a strict evaluation rubric.
+Identify the exact micronutrients and macronutrients that pose a risk or benefit to their specific medical conditions.
+Output your plan strictly in JSON format matching the schema.
 `;

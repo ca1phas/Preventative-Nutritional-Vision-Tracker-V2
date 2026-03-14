@@ -5,15 +5,25 @@ import {
     analyzeSystemInstruction,
     mapSystemInstruction,
     getMapPrompt,
-    assessmentSchema,
-    assessmentSystemInstruction
+    mealAssessmentSchema,
+    userAssessmentSchema,
+    mealAssessmentSystemInstruction,
+    userAssessmentSystemInstruction,
+    dashboardInsightsSchema,
+    dashboardInsightsSystemInstruction,
+    clinicalRubricSchema,
+    clinicalRubricSystemInstruction
 } from './ai-config.js';
 
 // Initialize with Vite environment variable
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
+
+// ==========================================
+// 1. VISION & MAPPING (Powered by Gemini)
+// ==========================================
+
 export async function analyzeFoodImage(imageBase64, mimeType = "image/jpeg") {
-    // Clean the base64 string if it contains the data URI prefix
     const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
     const response = await ai.models.generateContent({
@@ -33,7 +43,6 @@ export async function analyzeFoodImage(imageBase64, mimeType = "image/jpeg") {
     const foodItems = JSON.parse(response.text);
     const currentDatetime = new Date().toISOString();
 
-    // Use native browser crypto for UUID
     return foodItems.map(item => ({
         id: crypto.randomUUID(),
         datetime: currentDatetime,
@@ -42,7 +51,7 @@ export async function analyzeFoodImage(imageBase64, mimeType = "image/jpeg") {
 }
 
 export async function searchUSDA(foodName) {
-    const usdaApiKey = import.meta.env.VITE_USDA_API_KEY; // Make sure to add this to your .env!
+    const usdaApiKey = import.meta.env.VITE_USDA_API_KEY;
     let searchTerms = foodName.split(' ');
 
     while (searchTerms.length > 0) {
@@ -65,7 +74,7 @@ export async function mapToNutritionSchema(foodItem, usdaResults) {
     const hydratedPrompt = getMapPrompt(foodItem, usdaResults);
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite-preview',
+        model: 'gemini-3.1-flash-lite-preview', // Or gemini-2.5-flash
         contents: hydratedPrompt,
         config: {
             systemInstruction: mapSystemInstruction,
@@ -78,30 +87,190 @@ export async function mapToNutritionSchema(foodItem, usdaResults) {
     return JSON.parse(response.text);
 }
 
-export async function generateAIAssessment(userProfile, currentMeal, pastTwoWeeksMeals) {
+// STAGE 1: CLINICAL PROFILER (Powered by Flextoken Qwen 2.5)
+export async function generateClinicalRubric(userProfile) {
+    const prompt = `--- PATIENT PROFILE ---\n${JSON.stringify(userProfile, null, 2)}`;
+
+    const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+    };
+
+    const systemPrompt = `
+    ${clinicalRubricSystemInstruction}
+    IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting like \`\`\`json.
+    ${JSON.stringify(clinicalRubricSchema)}
+    `;
+
+    const data = {
+        model: "qwen2.5",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt }
+        ],
+        max_completion_tokens: 10000,
+        temperature: 0.1,
+        top_p: 0.9,
+    };
+
+    const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(data) });
+    if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+
+    const responseData = await response.json();
+    let content = responseData.choices[0].message.content;
+
+    // --- ROBUST JSON EXTRACTION ---
+    // Find the first '{' and last '}' to strip away any conversational filler or markdown
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+        content = content.substring(jsonStart, jsonEnd + 1);
+    }
+
+    try {
+        return JSON.parse(content);
+    } catch (parseError) {
+        console.error("Failed to parse this content into JSON:", content);
+        throw parseError;
+    }
+}
+
+// STAGE 2: CLINICAL ASSESSOR (Powered by Flextoken Qwen 2.5)
+export async function generateMealAssessment(userProfile, rawCurrentMeal) {
+    try {
+        // Multi-Agent Workflow: Generate the plan first
+        const clinicalRubric = await generateClinicalRubric(userProfile);
+
+        const prompt = `
+        --- CLINICAL EVALUATION RUBRIC ---
+        ${JSON.stringify(clinicalRubric, null, 2)}
+
+        --- RAW MEAL DATA TO EVALUATE ---
+        ${JSON.stringify(rawCurrentMeal, null, 2)}
+        
+        Using the rules and critical nutrients identified in the Rubric, evaluate this meal and calculate the status code.
+        `;
+
+        const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+        };
+
+        const systemPrompt = `
+        ${mealAssessmentSystemInstruction}
+        IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting.
+        ${JSON.stringify(mealAssessmentSchema)}
+        `;
+
+        const data = {
+            model: "qwen2.5",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            max_completion_tokens: 10000,
+            temperature: 0.1,
+            top_p: 0.9,
+        };
+
+        const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(data) });
+        if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+
+        const responseData = await response.json();
+        const content = responseData.choices[0].message.content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        return JSON.parse(content);
+
+    } catch (error) {
+        console.error("Error generating Meal Assessment:", error);
+        throw error;
+    }
+}
+
+export async function generateUserAssessment(userProfile, rawMeals) {
+    try {
+        // Multi-Agent Workflow: Generate the plan first
+        const clinicalRubric = await generateClinicalRubric(userProfile);
+
+        const prompt = `
+        --- CLINICAL EVALUATION RUBRIC ---
+        ${JSON.stringify(clinicalRubric, null, 2)}
+
+        --- RAW PATIENT 14-DAY MEAL HISTORY ---
+        ${JSON.stringify(rawMeals, null, 2)}
+        
+        Using the rules and critical nutrients identified in the Rubric, evaluate this 14-day trend and calculate the user status code.
+        `;
+
+        const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+        };
+
+        const systemPrompt = `
+        ${userAssessmentSystemInstruction}
+        IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting.
+        ${JSON.stringify(userAssessmentSchema)}
+        `;
+
+        const data = {
+            model: "qwen2.5",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            max_completion_tokens: 10000,
+            temperature: 0.1,
+            top_p: 0.9,
+        };
+
+        const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(data) });
+        if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+
+        const responseData = await response.json();
+        const content = responseData.choices[0].message.content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        return JSON.parse(content);
+
+    } catch (error) {
+        console.error("Error generating User Assessment:", error);
+        throw error;
+    }
+}
+
+// ==========================================
+// 4. COMPLEX DASHBOARD INSIGHTS (Powered by Gemini)
+// ==========================================
+
+export async function generateDashboardInsights(userProfile, meals) {
     const prompt = `
     --- PATIENT PROFILE ---
     ${JSON.stringify(userProfile, null, 2)}
 
-    --- CURRENT MEAL TO EVALUATE ---
-    ${JSON.stringify(currentMeal, null, 2)}
-
-    --- PATIENT 14-DAY MEAL HISTORY ---
-    ${JSON.stringify(pastTwoWeeksMeals, null, 2)}
-    
-    Provide the assessment and calculate the status codes.
+    --- RAW PATIENT 14-DAY MEAL HISTORY ---
+    ${JSON.stringify(meals, null, 2)}
     `;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            systemInstruction: assessmentSystemInstruction,
-            responseMimeType: "application/json",
-            responseSchema: assessmentSchema,
-            temperature: 0.2 // Keep temperature low for clinical consistency
-        }
-    });
+    try {
+        // We use Gemini here because it effortlessly handles large JSON context windows 
+        // and strictly enforces the deeply nested insight schema.
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction: dashboardInsightsSystemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: dashboardInsightsSchema,
+                temperature: 0.2
+            }
+        });
 
-    return JSON.parse(response.text);
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error generating Dashboard Insights:", error);
+        throw error;
+    }
 }

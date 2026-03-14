@@ -25,13 +25,13 @@ async function initAuthGuard() {
 
   // 3. Admin-only page check
   //if (session && currentPath.endsWith("dashboard.html")) {
-   // const adminStatus = await isAdmin();
-   // if (!adminStatus) {
-      //alert("Admin access required");
-      //window.location.replace("index.html");
-     // return;
-   // }
- // }
+  // const adminStatus = await isAdmin();
+  // if (!adminStatus) {
+  //alert("Admin access required");
+  //window.location.replace("index.html");
+  // return;
+  // }
+  // }
 
   //3.5  User try to access other pages when user details not filled
   if (session) {
@@ -49,9 +49,9 @@ async function initAuthGuard() {
         return;
       }
     }
-    if (!isAdmin() && !validateUserProfile().valid && !currentPath.endsWith("userProfile.html")){
-        window.location.replace("userProfile.html");
-        return; 
+    if (!isAdmin() && !validateUserProfile().valid && !currentPath.endsWith("userProfile.html")) {
+      window.location.replace("userProfile.html");
+      return;
     }
   }
 

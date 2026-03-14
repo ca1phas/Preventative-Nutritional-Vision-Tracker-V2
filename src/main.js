@@ -1,6 +1,67 @@
+// ==========================================
+// TEST SUITE (Run in browser console)
+// ==========================================
+
+import { generateMealAssessment, generateUserAssessment, generateDashboardInsights } from "./ai-service"
+
+export async function runAITests() {
+  console.log("🚀 Starting Agentic AI Pipeline Tests...");
+
+  const mockProfile = {
+    age: 45,
+    gender: "Male",
+    weight_kg: 88,
+    medical_conditions: ["Pre-diabetes", "Mild Hypertension"],
+    goals: ["Blood sugar control", "Reduce sodium intake"]
+  };
+
+  const mockCurrentMeal = {
+    created_at: new Date().toISOString(),
+    food_items: [{ item: "Fried Rice with Egg", serving_size_g: 300 }],
+    calories_kcal: 850,
+    protein_g: 32,
+    total_carbs_g: 85,
+    total_fat_g: 42,
+    sodium_mg: 1450,
+    total_sugar_g: 4
+  };
+
+  const mock14DayMeals = [
+    mockCurrentMeal,
+    {
+      created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      calories_kcal: 920, total_carbs_g: 95, sodium_mg: 1100, protein_g: 28
+    },
+    {
+      created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      calories_kcal: 450, total_carbs_g: 30, sodium_mg: 400, protein_g: 40
+    }
+  ];
+
+  try {
+    console.log("⏳ 1. Testing Multi-Stage Meal Assessment (Qwen 2.5)...");
+    const mealResult = await generateMealAssessment(mockProfile, mockCurrentMeal);
+    console.log("✅ Meal Assessment Result:", mealResult);
+
+    console.log("\n⏳ 2. Testing Multi-Stage 14-Day Trend Assessment (Qwen 2.5)...");
+    const userResult = await generateUserAssessment(mockProfile, mock14DayMeals);
+    console.log("✅ User Assessment Result:", userResult);
+
+    console.log("\n⏳ 3. Testing Complex Dashboard Insights (Gemini)...");
+    const insightsResult = await generateDashboardInsights(mockProfile, mock14DayMeals);
+    console.log("✅ Dashboard Insights Result:", insightsResult);
+
+    console.log("\n🎉 ALL TESTS PASSED SUCCESSFULLY!");
+  } catch (error) {
+    console.error("❌ TEST FAILED:", error);
+  }
+}
+
+runAITests();
+
 import { logoutUser } from './supabase.js';
 import { getCurrentUser } from './auth-guard.js';
-import './auth-guard.js'; 
+import './auth-guard.js';
 
 document.getElementById('learnMoreBtn')?.addEventListener('click', () => {
   document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
@@ -28,7 +89,7 @@ document.getElementById('userRole')?.addEventListener('click', (e) => {
 async function requireLogin(e) {
   e.preventDefault();
   const user = await getCurrentUser();
-  
+
   if (!user) {
     window.location.href = 'login.html';
   } else {
@@ -81,10 +142,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     e.preventDefault();
     const href = this.getAttribute('href');
-    
+
     // Skip if href is just '#' with nothing after it
     if (href === '#') return;
-    
+
     const target = document.querySelector(href);
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
@@ -137,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const user = await getCurrentUser();
     console.log('User in DOMContentLoaded:', user);
-    
+
     if (user) {
       const navMenu = document.getElementById('navMenu');
       const userControls = document.querySelector('.user-controls');
@@ -168,10 +229,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => {
           const dropdownToggle = navMenu.querySelector('.dropdown-toggle');
           const dropdownMenu = navMenu.querySelector('.dropdown-menu');
-          
+
           console.log('dropdownToggle exists:', !!dropdownToggle);
           console.log('dropdownMenu exists:', !!dropdownMenu);
-          
+
           if (dropdownToggle && dropdownMenu) {
             dropdownToggle.addEventListener('click', (e) => {
               e.preventDefault();
@@ -194,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (userControls) {
         userControls.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
-        
+
         setTimeout(() => {
           const logoutBtn = document.getElementById('logoutBtnNav');
           if (logoutBtn) {

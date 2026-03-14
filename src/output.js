@@ -1,7 +1,7 @@
 import localforage from 'localforage';
 import { getUserProfile, getUserMeals, updateMeal, updateUserProfile } from './supabase.js';
-import { generateAIAssessment } from './ai-service.js';
-import './auth-guard.js'; 
+import { generateMealAssessment, generateUserAssessment } from './ai-service.js';
+import './auth-guard.js';
 
 // Nutrient display mappings
 const nutrientLabels = {
@@ -87,6 +87,7 @@ async function initOutput() {
     });
 
     // 6. Run Clinical AI Assessment Pipeline
+    // Make sure 'userID' matches exactly how it was saved in localforage during the previous step
     await runClinicalAssessment(record.userID);
 
   } catch (err) {
@@ -97,10 +98,10 @@ async function initOutput() {
 
 async function runClinicalAssessment(userId) {
   const summaryContainer = document.getElementById("aiSummary");
-  summaryContainer.innerHTML = "<p><em>Analyzing meal against your clinical profile and 14-day history...</em></p>";
+  summaryContainer.innerHTML = "<p><em>Analyzing meal and 14-day trend...</em></p>";
 
   try {
-    // Fetch all user meals (ordered by created_at descending from our Supabase setup)
+    // Fetch all user meals (assuming they are ordered by created_at descending from Supabase)
     const allUserMeals = await getUserMeals(userId);
 
     if (!allUserMeals || allUserMeals.length === 0) {
@@ -115,36 +116,63 @@ async function runClinicalAssessment(userId) {
     // Fetch user profile for biometrics and medical notes
     const userProfile = await getUserProfile(userId);
 
-    // Filter the remaining meals for the past 14 days
+    // Filter meals for the past 14 days (including the current one)
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-    const pastTwoWeeksMeals = allUserMeals.slice(1).filter(meal =>
+    const pastTwoWeeksMeals = allUserMeals.filter(meal =>
       new Date(meal.created_at) >= twoWeeksAgo
     );
 
-    // Generate the AI Assessment
-    const aiEvaluation = await generateAIAssessment(userProfile, currentMealData, pastTwoWeeksMeals);
+    // 1. Generate the Meal Assessment (Current meal only)
+    const mealEvaluation = await generateMealAssessment(userProfile, currentMealData);
+
+    // 2. Generate the User Assessment (14-day trend)
+    const userEvaluation = await generateUserAssessment(userProfile, pastTwoWeeksMeals);
 
     // Update database statuses asynchronously
     await Promise.all([
-      updateMeal(mealId, { status: aiEvaluation.meal_status }),
-      updateUserProfile(userId, { status: aiEvaluation.user_status })
+      updateMeal(mealId, { status: mealEvaluation.meal_status }),
+      updateUserProfile(userId, { status: userEvaluation.user_status })
     ]);
 
-    // Render the results
+    // Render the combined results to the UI
     summaryContainer.innerHTML = `
-            <h3 style="margin-top:0; color:#1f2937;">Clinical AI Assessment</h3>
-            <p style="margin-bottom:10px; line-height:1.5;">${aiEvaluation.meal_assessment_text}</p>
-            <div style="font-size: 0.9em; padding: 10px; background-color: #f3f4f6; border-radius: 6px;">
-                <strong>Meal Risk Level:</strong> ${aiEvaluation.meal_status} | 
-                <strong>Overall Patient Risk Level:</strong> ${aiEvaluation.user_status}
+            <h3 style="margin-top:0; color:#1f2937; margin-bottom: 1rem;"><i class="fas fa-stethoscope"></i> Clinical AI Assessment</h3>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 0.5rem; color: #4b5563;">Current Meal Evaluation</h4>
+                <p style="margin-bottom:0; line-height:1.5;">${mealEvaluation.meal_assessment_text}</p>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 0.5rem; color: #4b5563;">14-Day Trend Analysis</h4>
+                <p style="margin-bottom:0; line-height:1.5;">${userEvaluation.user_assessment_text}</p>
+            </div>
+
+            <div style="font-size: 0.9em; padding: 12px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; display: flex; justify-content: space-around;">
+                <span><strong>Meal Risk Level:</strong> ${getStatusBadge(mealEvaluation.meal_status)}</span>
+                <span><strong>Overall Patient Risk Level:</strong> ${getStatusBadge(userEvaluation.user_status)}</span>
             </div>
         `;
 
   } catch (err) {
     console.error("AI Assessment Error:", err);
-    summaryContainer.innerHTML = "<p style='color:red;'>Failed to generate clinical assessment.</p>";
+    summaryContainer.innerHTML = "<p style='color:red;'>Failed to generate clinical assessment. Please check the console for details.</p>";
+  }
+}
+
+// Helper function to color-code the status integers
+function getStatusBadge(statusCode) {
+  switch (statusCode) {
+    case 0:
+      return '<span style="color: green; font-weight: bold;">0 (Healthy)</span>';
+    case 1:
+      return '<span style="color: orange; font-weight: bold;">1 (Warning)</span>';
+    case 2:
+      return '<span style="color: red; font-weight: bold;">2 (Alert)</span>';
+    default:
+      return `<span>${statusCode}</span>`;
   }
 }
 
