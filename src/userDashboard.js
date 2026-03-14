@@ -1,7 +1,8 @@
-import { supabase, logoutUser, getUserProfile, getUserMeals } from './supabase.js';
+import { getUserProfile, getUserMeals } from './supabase.js';
 import { generateDashboardInsights } from './ai-service.js';
 import localforage from 'localforage';
-import './auth-guard.js';
+import { initAuthGuard } from './auth-guard.js';
+initAuthGuard();
 
 // ===== CONFIGURATION =====
 // Set to false when integrating with backend API
@@ -64,6 +65,8 @@ async function loadAIInsights() {
         }
 
         const userId = record.userID;
+
+        console.log("Getting user details")
         const userProfile = await getUserProfile(userId);
         const allUserMeals = await getUserMeals(userId);
 
@@ -73,6 +76,7 @@ async function loadAIInsights() {
         const recentMeals = allUserMeals.filter(meal => new Date(meal.created_at) >= twoWeeksAgo);
 
         // Call our new AI function
+        console.log("Generating Dashboard Insights")
         const aiData = await generateDashboardInsights(userProfile, recentMeals);
 
         // 1. Update the Status Banner

@@ -1,4 +1,6 @@
-import './auth-guard.js'; 
+import { initAuthGuard } from './auth-guard.js';
+initAuthGuard();
+
 const HISTORY_STORAGE_KEY = 'userMealHistory';
 const DEFAULT_MEAL_IMAGE = '/images/hero-background.jpg';
 
@@ -13,8 +15,6 @@ const HISTORY_CONFIG = {
   },
   REQUEST_TIMEOUT_MS: 12000,
 };
-
-checkUserAuth();
 
 const currentUser = 'DEMO_USER';
 const historyUserDisplay = document.getElementById('historyUserDisplay');

@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize with Vite environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-console.log('ENV CHECK:', import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -32,9 +31,6 @@ export async function authenticateUser(email, password) {
     };
 }
 
-//export const logoutUser = async () => {
-//    await supabase.auth.signOut();
-//};
 
 export async function logoutUser() {
     const { error } = await supabase.auth.signOut();
@@ -52,8 +48,29 @@ export async function createUserProfile(id, profileData) {
 }
 
 export async function getUserProfile(id) {
-    const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-    if (error) throw error;
+    if (!id) {
+        throw new Error('User ID is required');
+    }
+
+    let data, error;
+
+    try {
+        ({ data, error } = await supabase.from('users').select('*').eq('id', id).single());
+    } catch (err) {
+        throw new Error(`Failed to fetch user profile: ${err.message}`);
+    }
+
+    if (error) {
+        if (error.code === 'PGRST116') {
+            throw new Error(`User with ID "${id}" not found`);
+        }
+        throw new Error(`Database error: ${error.message}`);
+    }
+
+    if (!data) {
+        throw new Error(`No data returned for user ID "${id}"`);
+    }
+
     return data;
 }
 

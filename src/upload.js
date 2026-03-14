@@ -1,5 +1,6 @@
 import { analyzeFoodImage } from './ai-service.js';
-import { validateUserProfile } from './auth-guard.js';
+import { initAuthGuard } from './auth-guard.js';
+initAuthGuard()
 
 const uploadForm = document.getElementById('uploadForm');
 const mealImageInput = document.getElementById('mealImage');
@@ -36,15 +37,6 @@ mealImageInput.addEventListener('change', (event) => {
 // 2. Handle Form Submission
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    // Check if user profile is complete
-    const validation = await validateUserProfile();
-    
-    if (!validation.valid) {
-        console.error(validation.message);
-        showError(`Please complete your profile first. ${validation.message}`);
-        return;
-    }
 
     const file = mealImageInput.files[0];
     if (!file || !isValidFormat(file)) {

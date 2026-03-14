@@ -1,5 +1,6 @@
 import { authenticateUser, logoutUser } from './supabase.js';
-import './auth-guard.js';  
+import { initAuthGuard } from './auth-guard.js';
+initAuthGuard();
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
