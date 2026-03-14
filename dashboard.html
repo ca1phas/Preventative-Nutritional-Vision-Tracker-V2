@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - Nutrition Tracker</title>
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="/src/style.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="/src/dashboard.js"></script>
   </head>
   <body class="dashboard-body">
@@ -44,11 +45,62 @@
 
         <div id="error" class="alert alert-error hidden"></div>
 
+        <!-- Pie Chart - Top Center -->
+        <div class="dashboard-pie-section">
+          <div class="pie-chart-wrapper">
+            <h3 class="pie-chart-title">
+              <i class="fas fa-chart-pie"></i> Patient Status Distribution
+            </h3>
+            <div class="pie-chart-with-legend">
+              <div class="pie-chart-container">
+                <canvas id="statusPieChart"></canvas>
+              </div>
+              <div id="pieChartLegend" class="pie-chart-legend"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search, Filter & Sort Bars -->
+        <div class="dashboard-controls">
+          <div class="dashboard-controls-row">
+            <div class="search-box-wrap">
+              <i class="fas fa-search search-icon"></i>
+              <input
+                type="text"
+                id="searchInput"
+                class="search-input"
+                placeholder="Search patients by name..."
+                autocomplete="off"
+              />
+            </div>
+            <div class="filter-wrap">
+              <label for="statusFilter" class="filter-label">
+                <i class="fas fa-filter"></i> Filter
+              </label>
+              <select id="statusFilter" class="filter-select">
+                <option value="">All statuses</option>
+                <option value="Healthy">Healthy</option>
+                <option value="Alert">Alert</option>
+                <option value="Intervention">Intervention</option>
+              </select>
+            </div>
+            <div class="sort-wrap">
+              <label for="sortSelect" class="filter-label">
+                <i class="fas fa-sort-alpha-down"></i> Sort
+              </label>
+              <select id="sortSelect" class="filter-select">
+                <option value="az">A → Z (Name)</option>
+                <option value="za">Z → A (Name)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="table-card">
           <table class="table">
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>Name</th>
                 <th>Last Updated</th>
                 <th>Age</th>
                 <th>BMI</th>
