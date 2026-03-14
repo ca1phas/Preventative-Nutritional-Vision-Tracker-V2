@@ -176,19 +176,20 @@ Only output 0 if the USDA database explicitly lists the value as 0 or you are ce
 }
 
 // ==========================================
-// ASSESSMENT AI CONFIG
+// ASSESSMENT AI CONFIG (UPGRADED CLINICAL PIPELINE)
 // ==========================================
+
 export const mealAssessmentSchema = {
     "type": "object",
     "description": "The health assessment of the current meal.",
     "properties": {
         "meal_assessment_text": {
             "type": "string",
-            "description": "A short, empathetic, yet direct nutritional assessment of the current meal."
+            "description": "A short, empathetic, yet direct clinical nutritional assessment of the current meal against the patient's specific metabolic targets."
         },
         "meal_status": {
             "type": "integer",
-            "description": "Must be exactly 0, 1, or 2. (0 = Healthy, 1 = Warning, 2 = Alert/Intervention)"
+            "description": "Must be exactly 0, 1, or 2. (0 = Healthy, 1 = Warning, 2 = Alert)"
         }
     },
     "required": ["meal_assessment_text", "meal_status"]
@@ -200,7 +201,7 @@ export const userAssessmentSchema = {
     "properties": {
         "user_assessment_text": {
             "type": "string",
-            "description": "A short, empathetic assessment of the user's dietary trend over the past 14 days."
+            "description": "A short, empathetic clinical assessment of the user's dietary trend over the past 14 days against their targets."
         },
         "user_status": {
             "type": "integer",
@@ -211,25 +212,25 @@ export const userAssessmentSchema = {
 };
 
 export const mealAssessmentSystemInstruction = `
-You are an expert clinical nutritionist AI.
-Your task is to evaluate a patient's latest meal against their personal medical profile.
+You are an expert clinical dietitian AI. 
+Your task is to evaluate a patient's latest meal against the exact numbers provided in their personalized Clinical Evaluation Rubric.
 
-Evaluate based on these Status Codes:
-0 (Healthy): Within standard nutritional goals, balanced macros, safe for their medical profile.
-1 (Warning): Approaching limits (e.g., high sodium for a hypertensive patient, high sugar for a diabetic).
-2 (Alert): Dangerous or highly unbalanced intake requiring potential clinical intervention.
+Evaluate based STRICTLY on these Status Codes:
+0 (Healthy): Macros are balanced, safe for medical profile, and portion aligns with maintaining the daily target (within ± 200 cal of an appropriate meal proportion).
+1 (Warning): Approaching daily limits (e.g., this single meal consumes >60% of daily calories/carbs) OR severely under-eating (> 500 cal below appropriate daily pace).
+2 (Alert): Dangerous intake requiring intervention (e.g., a single meal exceeding the strict daily max sugar limit, or highly unbalanced intake actively triggering a noted medical condition).
 
-Output a short, plain-text assessment and the meal's status code.
+Output a short, plain-text assessment and the exact meal status code.
 `;
 
 export const userAssessmentSystemInstruction = `
-You are an expert clinical nutritionist AI.
-Your task is to evaluate a patient's dietary history over the past 14 days against their personal medical profile.
+You are an expert clinical dietitian AI.
+Your task is to evaluate a patient's 14-day dietary history against the personalized targets in their Clinical Evaluation Rubric.
 
-Evaluate based on these Status Codes:
-0 (Healthy): Overall 14-day trend is within standard nutritional goals and safe.
-1 (Warning): Trend shows approaching limits or consistent minor imbalances.
-2 (Alert): Dangerous or highly unbalanced consistent intake requiring potential clinical intervention.
+Evaluate based STRICTLY on these Status Codes:
+0 (Healthy): 14-day trend shows calories consistently within ± 200 of the daily target, balanced macros, and adherence to medical rules.
+1 (Warning): Trend shows consistent minor imbalances (> 500 cal deficit daily, or consistently nearing sugar/sodium max limits).
+2 (Alert): Dangerous consistent intake (e.g., routinely > 200 cal over daily target, chronically exceeding max sugar/sodium caps, ignoring medical profile constraints).
 
 Output a short, plain-text assessment and the overall user status code.
 `;
@@ -276,32 +277,48 @@ export const dashboardInsightsSchema = {
     "required": ["user_assessment_text", "user_status", "insight_good", "insight_improve", "insight_pattern", "insight_risk"]
 };
 
-// Add this to the bottom of ai-config.js
-
 export const clinicalRubricSchema = {
     "type": "object",
-    "description": "A personalized clinical assessment plan based on a patient profile.",
+    "description": "A personalized clinical assessment plan and quantitative budget based on a patient profile.",
     "properties": {
         "metabolic_summary": {
             "type": "string",
-            "description": "A 2-sentence summary of the patient's metabolic state and primary risks."
+            "description": "A 2-sentence summary of the patient's metabolic state and primary risks based on their profile."
         },
+        "target_calories": { "type": "number", "description": "Calculated daily calorie budget." },
+        "target_protein_g": { "type": "number", "description": "Calculated daily protein target in grams." },
+        "target_carbs_g": { "type": "number", "description": "Calculated daily carbs target in grams." },
+        "target_fat_g": { "type": "number", "description": "Calculated daily fat target in grams." },
+        "max_sugar_g": { "type": "number", "description": "Strict daily maximum sugar in grams." },
+        "min_fiber_g": { "type": "number", "description": "Strict daily minimum fiber in grams." },
         "critical_nutrients": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "List of the specific database nutrient keys (e.g., 'sodium_mg', 'potassium_mg', 'total_sugar_g') that must be strictly monitored for this specific patient."
+            "description": "List of the specific database nutrient keys (e.g., 'sodium_mg', 'total_sugar_g') that must be heavily scrutinized."
         },
         "evaluation_rules": {
             "type": "string",
-            "description": "Custom rules for the assessor (e.g., 'Strictly flag any meal over 50g of carbs due to pre-diabetes')."
+            "description": "Custom strict rules for the assessor (e.g., 'Strictly flag any meal over 30g of sugar due to pre-diabetes')."
         }
     },
-    "required": ["metabolic_summary", "critical_nutrients", "evaluation_rules"]
+    "required": [
+        "metabolic_summary", "target_calories", "target_protein_g", "target_carbs_g",
+        "target_fat_g", "max_sugar_g", "min_fiber_g", "critical_nutrients", "evaluation_rules"
+    ]
 };
 
 export const clinicalRubricSystemInstruction = `
 You are a Lead Clinical Dietitian AI.
-Analyze the patient's profile (age, weight, conditions) and create a strict evaluation rubric.
-Identify the exact micronutrients and macronutrients that pose a risk or benefit to their specific medical conditions.
-Output your plan strictly in JSON format matching the schema.
+Analyze the patient's profile (age, weight, height, gender, medical_notes) and create a strict quantitative evaluation rubric.
+
+STEP 1: Calculate the patient's Basal Metabolic Rate (BMR) using the Mifflin-St Jeor Equation. Assume a sedentary multiplier (1.2) for the Total Daily Energy Expenditure (TDEE) unless otherwise implied.
+STEP 2: Set Baseline Macros using these standard targets: 
+- Protein: 10% - 35% of daily calories
+- Carbohydrates: 45% - 65% of daily calories
+- Fats: 20% - 35% of daily calories
+- Sugar: Under 50g per day
+- Fiber: 25g - 30g per day
+STEP 3: ADJUST FOR MEDICAL NOTES. If the patient has specific conditions (e.g., diabetes, hypertension, obesity) listed in their profile, you MUST override the baselines (e.g., lower max sugar to 25g, lower carbs to 40%, flag sodium_mg as a critical nutrient).
+
+Output your quantitative plan and rules strictly in JSON format matching the schema.
 `;
