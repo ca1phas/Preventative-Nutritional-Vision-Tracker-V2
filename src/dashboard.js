@@ -1,4 +1,3 @@
-dashboard.js
 import './style.css';
 import { supabase } from './supabaseConnect.js';
 
@@ -264,5 +263,4 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     sessionStorage.clear();
     window.location.href = 'index.html';
 });
-
 loadDashboard();
