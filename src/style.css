@@ -1995,6 +1995,30 @@ body.homepage {
   animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
+.hero-text-card {
+  max-width: 1140px;
+  margin: 0 auto 2.4rem;
+  padding: 2rem 2.3rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+}
+
+.hero-text-card .hero-title {
+  margin-bottom: 1rem;
+}
+
+.hero-title-top {
+  white-space: nowrap;
+}
+
+.hero-text-card .hero-subtitle {
+  margin-bottom: 0;
+}
+
 .hero-buttons {
   display: flex;
   gap: 1.5rem;
@@ -2480,6 +2504,12 @@ body.homepage {
 @media (max-width: 768px) {
   .nav-menu {
     display: none;
+  }
+
+  .hero-text-card {
+    padding: 1.35rem 1.2rem;
+    margin: 0 auto 1.8rem;
+    border-radius: 18px;
   }
 
   .hero-title {
