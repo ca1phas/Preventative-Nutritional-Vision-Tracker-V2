@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="view-transition" content="same-origin" />
     <title>Nutrition Dashboard - Nutrition Tracker</title>
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="src/styles.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -37,10 +37,13 @@
     <div class="container">
       <!-- Dashboard Panel -->
       <div id="dashboardPanel" class="panel-content">
-        <div id="overallUserStatus" class="status-banner" style="margin-bottom: 2rem;">
-      </div>
+        <div
+          id="overallUserStatus"
+          class="status-banner"
+          style="margin-bottom: 2rem"
+        ></div>
 
-      <!-- Daily Summary -->
+        <!-- Daily Summary -->
         <div class="summary-section">
           <h3>
             <i class="fas fa-calendar-day"></i> Today's Summary -
@@ -67,11 +70,29 @@
         </div>
 
         <!-- Weekly Summary -->
-        <div class="summary-section" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1rem; color: #1f2937; display: flex; align-items: center; gap: 0.75rem;">
-                <i class="fas fa-chart-line" style="color: #64748b;"></i> Weekly Nutrition Trend
-            </h3>
-            <canvas id="nutritionTrendChart" height="100"></canvas>
+        <div
+          class="summary-section"
+          style="
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+          "
+        >
+          <h3
+            style="
+              margin-bottom: 1rem;
+              color: #1f2937;
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+            "
+          >
+            <i class="fas fa-chart-line" style="color: #64748b"></i> Weekly
+            Nutrition Trend
+          </h3>
+          <canvas id="nutritionTrendChart" height="100"></canvas>
         </div>
         <div class="page-header">
           <h2><i class="fas fa-chart-line"></i> Nutrition Dashboard</h2>
@@ -152,8 +173,6 @@
             </div>
           </div>
         </div>
-
-        
 
         <!-- Insights Summary -->
         <div class="summary-section">

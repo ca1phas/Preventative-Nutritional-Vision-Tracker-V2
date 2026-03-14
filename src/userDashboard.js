@@ -1,4 +1,4 @@
-import './style.css';
+import { supabase } from './supabase.js';
 
 // ===== CONFIGURATION =====
 // Set to false when integrating with backend API
@@ -166,7 +166,7 @@ function renderNutritionChart() {
     const ctx = document.getElementById('nutritionTrendChart');
     if (!ctx) return;
 
-    if(window.myNutritionChart) {
+    if (window.myNutritionChart) {
         window.myNutritionChart.destroy();
     }
 
