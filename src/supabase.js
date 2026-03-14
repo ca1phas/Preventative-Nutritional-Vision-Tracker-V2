@@ -81,6 +81,25 @@ export async function updateUserProfile(id, updates) {
 }
 
 // ==========================================
+// USERS - GET ALL (for admin dashboard)
+// ==========================================
+export async function getAllUsers() {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, name, email, age, gender, medical_notes, is_admin, status, created_at')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    } catch (err) {
+        throw new Error('Failed to fetch users: ' + err.message);
+    }
+}
+
+
+
+// ==========================================
 // NUTRITIONS CRUD
 // ==========================================
 export async function createNutrition(nutritionData) {
@@ -194,6 +213,9 @@ export async function uploadMealImage(base64DataUrl, originalFileName, userId) {
         throw new Error('Failed to upload image: ' + error.message);
     }
 }
+
+
+
 
 // ==========================================
 // MASTER PIPELINE: LOG COMPLETE MEAL
