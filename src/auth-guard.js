@@ -56,3 +56,9 @@ export async function getCurrentUser() {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.user || null;
 }
+
+export async function redirectIfNotAuth() {
+    if (!getCurrentUser()) {
+        window.location.href = 'index.html';
+    }
+}

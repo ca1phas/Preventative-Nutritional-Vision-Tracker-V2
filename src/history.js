@@ -384,9 +384,4 @@ function statusLabel(status) {
   return 'Unknown';
 }
 
-function checkUserAuth() {
-  const isAuthenticated = sessionStorage.getItem('isUserAuthenticated') === 'true';
-  if (!isAuthenticated) {
-    window.location.href = 'index.html';
-  }
-}
+

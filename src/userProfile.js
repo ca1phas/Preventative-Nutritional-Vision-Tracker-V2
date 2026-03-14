@@ -96,9 +96,7 @@ document.getElementById('profileForm').addEventListener('submit', (e) => {
 
 // ===== LOGOUT =====
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('isUserAuthenticated');
-    sessionStorage.removeItem('userID');
-    localStorage.removeItem('userID');
+    // TODO: logout
     window.location.href = 'index.html';
 });
 

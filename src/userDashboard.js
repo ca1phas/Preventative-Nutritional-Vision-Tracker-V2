@@ -128,11 +128,8 @@ function loadInsights() {
 
 // ===== LOGOUT =====
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('isUserAuthenticated');
-    sessionStorage.removeItem('userID');
-    localStorage.removeItem('userID');
-    window.location.href = 'index.html';
 });
+// use logout
 
 // ===== INITIALIZE =====
 loadDashboardData();

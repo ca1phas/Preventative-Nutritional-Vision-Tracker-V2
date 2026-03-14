@@ -23,38 +23,22 @@ if (userMenuBtn && userDropdown) {
 // Admin — login via login.html, admin check happens in dashboard.js via is_admin flag
 document.getElementById('adminRole')?.addEventListener('click', (e) => {
   e.preventDefault();
-  sessionStorage.setItem('pendingRole', 'admin');
-  window.location.href = 'login.html';
+  // Refirect user to dashboard.html if auth
+  // window.location.href = 'dashboard.html';
+
+  // Refirect them to login.html if not
+  // window.location.href = 'login.html';
 });
 
 // User — login via login.html
 document.getElementById('userRole')?.addEventListener('click', (e) => {
   e.preventDefault();
 
-  const VALID_USERS = {
-    'U001': 'user123',
-    'U002': 'user123',
-    'U003': 'user123',
-    'DOC001': 'doc123',
-    'PATIENT123': 'patient123'
-  };
+  // Refirect user to userProfile.html if auth
+  // window.location.href = 'userProfile.html';
 
-  const inputUsername = prompt('Enter User ID:');
-  if (inputUsername === null) return;
-
-  const inputPassword = prompt('Enter Password:');
-  if (inputPassword === null) return;
-
-  const username = inputUsername.trim();
-  if (VALID_USERS.hasOwnProperty(username) && VALID_USERS[username] === inputPassword) {
-    sessionStorage.setItem('userID', username);
-    sessionStorage.setItem('isUserAuthenticated', 'true');
-    window.location.href = 'userProfile.html';
-  } else {
-    sessionStorage.removeItem('userID');
-    sessionStorage.removeItem('isUserAuthenticated');
-    alert('Invalid user credentials. Access denied.');
-  }
+  // Refirect them to login.html if not
+  // window.location.href = 'login.html';
 });
 
 document.getElementById('loginBtn')?.addEventListener('click', (e) => {
