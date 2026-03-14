@@ -54,6 +54,7 @@ async function fetchUserNutritionData(userId) {
             .select(`
                 created_at,
                 nutritions (*) 
+                nutritions (*)
             `)
             .eq('user_id', userId);
 
@@ -117,7 +118,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const loggedInUserId = currentUser.id;
-
         const urlParams = new URLSearchParams(window.location.search);
         const requestedUserId = urlParams.get('userId');
 
@@ -126,7 +126,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const adminStatus = await isAdmin();
             if (adminStatus) {
                 state.targetUserId = requestedUserId;
-
                 // Add a handy back button for admins
                 const titleEl = document.querySelector('.page-header h2');
                 if (titleEl) {
@@ -156,7 +155,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 displayEl.style.color = "#ef4444"; // Red to clearly indicate admin view
             }
         }
-
     } catch (err) {
         console.error("Initialization error:", err);
     } finally {
@@ -180,33 +178,26 @@ function setupEventListeners() {
         });
     });
 
-    document.querySelectorAll('.bottom-tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.bottom-tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
+    function bindViewMore(btnId, wrapperId) {
+        document.getElementById(btnId)?.addEventListener('click', function () {
+            const wrapper = document.getElementById(wrapperId);
+            const icon = this.querySelector('i');
+            const text = this.querySelector('span');
 
-            const targetId = e.target.dataset.target;
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
+            if (wrapper.style.gridTemplateRows === '0fr' || !wrapper.style.gridTemplateRows) {
+                wrapper.style.gridTemplateRows = '1fr';
+                text.innerText = 'View Less';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                wrapper.style.gridTemplateRows = '0fr';
+                text.innerText = 'View More Nutrients';
+                icon.style.transform = 'rotate(0deg)';
+            }
         });
-    });
+    }
 
-    // View more function for extra macros
-    document.getElementById('toggleExtraMacrosBtn')?.addEventListener('click', function () {
-        const wrapper = document.getElementById('extraMacrosWrapper');
-        const icon = this.querySelector('i');
-        const text = this.querySelector('span');
-
-        if (wrapper.style.gridTemplateRows === '0fr' || !wrapper.style.gridTemplateRows) {
-            wrapper.style.gridTemplateRows = '1fr';
-            text.innerText = 'View Less';
-            icon.style.transform = 'rotate(180deg)';
-        } else {
-            wrapper.style.gridTemplateRows = '0fr';
-            text.innerText = 'View More Nutrients';
-            icon.style.transform = 'rotate(0deg)';
-        }
-    });
+    bindViewMore('toggleTodayExtraBtn', 'todayExtraWrapper');
+    bindViewMore('togglePeriodExtraBtn', 'periodExtraWrapper');
 
     document.getElementById('prevDate').addEventListener('click', () => {
         state.offset -= 1;
@@ -219,9 +210,13 @@ function setupEventListeners() {
             updateDashboard();
         }
     });
-}
 
-// ===== AI INSIGHTS ENGINE =====
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        sessionStorage.removeItem('isUserAuthenticated');
+        sessionStorage.removeItem('userID');
+        window.location.href = 'index.html';
+    });
+}
 
 async function loadAIInsights() {
     const container = document.getElementById('insightsContainer');
@@ -326,11 +321,16 @@ function updateOverallStatus(statusCode) {
     }
 }
 
-// ===== DASHBOARD UI RENDERING =====
-
 function updateDashboard() {
     const { startDate, endDate, label } = calculateDateRange(state.viewMode, state.offset);
     document.getElementById('dateLabel').innerText = label;
+
+    const periodTitle = document.getElementById('dynamicPeriodTitle');
+    if (state.viewMode === 'week') {
+        periodTitle.innerHTML = '<i class="fas fa-calendar-week" style="color: var(--accent-blue)"></i> WEEKLY MACRONUTRIENTS (AVG)';
+    } else {
+        periodTitle.innerHTML = '<i class="fas fa-calendar-alt" style="color: var(--accent-green)"></i> MONTHLY MACRONUTRIENTS (AVG)';
+    }
 
     const periodData = extractDataForPeriod(startDate, endDate);
     updateStats(periodData);
@@ -349,7 +349,6 @@ function calculateDateRange(mode, offset) {
         const dayOfWeek = now.getDay() || 7;
         now.setDate(now.getDate() - dayOfWeek + 1 + (offset * 7));
         startDate = new Date(now.setHours(0, 0, 0, 0));
-
         endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + 6);
         endDate.setHours(23, 59, 59, 999);
@@ -415,23 +414,111 @@ function updateStats(periodData) {
 
     document.getElementById('avgCaloriesLabel').innerText = `${Math.round(totalMain.calories).toLocaleString()} cals in - ${Math.round(totalMain.calories / divisor).toLocaleString()} cals/day (Avg)`;
 
-    document.getElementById('valCal').innerText = Math.round(totalMain.calories / divisor);
-    document.getElementById('valPro').innerText = Math.round(totalMain.protein / divisor) + 'g';
-    document.getElementById('valCarb').innerText = Math.round(totalMain.carbs / divisor) + 'g';
-    document.getElementById('valFat').innerText = Math.round(totalMain.fat / divisor) + 'g';
-    document.getElementById('valSug').innerText = Math.round(totalMain.sugar / divisor) + 'g';
+    const grid = document.getElementById('periodMacrosGrid');
+    grid.innerHTML = `
+        <div class="macro-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);"><i class="fas fa-fire c-cal" style="font-size:1.5rem; margin-bottom:8px;"></i><div class="macro-label">Calories</div><div class="macro-value c-cal">${Math.round(totalMain.calories / divisor)}</div></div>
+        <div class="macro-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);"><i class="fas fa-egg c-pro" style="font-size:1.5rem; margin-bottom:8px;"></i><div class="macro-label">Protein</div><div class="macro-value c-pro">${Math.round(totalMain.protein / divisor)}g</div></div>
+        <div class="macro-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);"><i class="fas fa-bread-slice c-carb" style="font-size:1.5rem; margin-bottom:8px;"></i><div class="macro-label">Carbs</div><div class="macro-value c-carb">${Math.round(totalMain.carbs / divisor)}g</div></div>
+        <div class="macro-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);"><i class="fas fa-cheese c-fat" style="font-size:1.5rem; margin-bottom:8px;"></i><div class="macro-label">Fat</div><div class="macro-value c-fat">${Math.round(totalMain.fat / divisor)}g</div></div>
+        <div class="macro-card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);"><i class="fas fa-candy-cane c-sug" style="font-size:1.5rem; margin-bottom:8px;"></i><div class="macro-label">Sugar</div><div class="macro-value c-sug">${Math.round(totalMain.sugar / divisor)}g</div></div>
+    `;
 
-    const extraContainer = document.getElementById('extraMacrosContainer');
-    extraContainer.innerHTML = '';
+    renderExtraMacros(totalExtra, divisor, 'periodExtraContainer', 'togglePeriodExtraBtn', 'periodExtraWrapper');
+}
 
-    let hasExtraMacros = false;
+function updateTodayStatus() {
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
-    Object.keys(totalExtra).forEach(key => {
-        const avgValue = Math.round(totalExtra[key] / divisor);
+    const todayData = state.userDB[todayStr] ? state.userDB[todayStr] : { main: { calories: 0, protein: 0, carbs: 0, fat: 0, sugar: 0 }, extra: {} }; 
 
+    const titleEl = document.getElementById('todayStatusTitle');
+    const calText = document.getElementById('todayCalText');
+    const budgetText = document.getElementById('todayBudgetText');
+    const gaugeEl = document.getElementById('calorieGauge');
+
+    const consumed = Math.round(todayData.main.calories);
+    const target = Math.round(state.budget);
+    const remaining = target - consumed;
+
+    let statusColor = "#10b981";
+    if (consumed === 0) {
+        titleEl.innerText = "TODAY - NO DATA";
+        titleEl.style.color = "#6b7280";
+        statusColor = "#111827"; 
+        gaugeEl.style.setProperty('--gauge-color', '#9ca3af');
+    } else if (consumed > target + 200) {
+        titleEl.innerText = "TODAY - OVER BUDGET";
+        titleEl.style.color = "#ef4444";
+        statusColor = "#ef4444"; 
+        gaugeEl.style.setProperty('--gauge-color', '#ef4444');
+    } else if (consumed < target - 500) {
+        titleEl.innerText = "TODAY - UNDER TARGET";
+        titleEl.style.color = "#ff9966";
+        statusColor = "#ff9966"; 
+        gaugeEl.style.setProperty('--gauge-color', '#ff9966');
+    } else {
+        titleEl.innerText = "TODAY - HEALTHY";
+        titleEl.style.color = "#10b981";
+        statusColor = "#10b981"; 
+        gaugeEl.style.setProperty('--gauge-color', '#10b981');
+    }
+
+    let progressPercentage = Math.min((consumed / target) * 100, 100);
+    gaugeEl.style.setProperty('--progress', consumed === 0 ? '0' : progressPercentage);
+
+    calText.innerHTML = `
+        <span style="font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 900; color: ${statusColor}; line-height: 1; letter-spacing: -1px;">${consumed}</span>
+        <span style="font-size: clamp(1rem, 2vw, 1.3rem); color: #6b7280; font-weight: 600;">/ ${target}</span>
+        <span style="font-size: 0.9rem; color: #9ca3af; font-weight: 500; margin-left: 2px;">kcal</span>
+    `;
+
+    if (remaining >= 0) {
+        budgetText.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981; margin-right: 4px;"></i> ${remaining} cal left`;
+    } else {
+        budgetText.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ef4444; margin-right: 4px;"></i> ${Math.abs(remaining)} cal over`;
+    }
+
+    const dynamicTargets = {
+        pro: Math.round((target * 0.20) / 4),
+        carb: Math.round((target * 0.50) / 4),
+        fat: Math.round((target * 0.30) / 9),
+        sug: Math.round((target * 0.10) / 4)
+    };
+
+    document.getElementById('todayMacroLines').innerHTML = `
+        ${createMacroLine('Protein', todayData.main.protein, dynamicTargets.pro, '#ec4899')}
+        ${createMacroLine('Carbs', todayData.main.carbs, dynamicTargets.carb, '#f59e0b')}
+        ${createMacroLine('Fat', todayData.main.fat, dynamicTargets.fat, '#3b82f6')}
+        ${createMacroLine('Sugar', todayData.main.sugar, dynamicTargets.sug, '#a855f7')}
+    `;
+
+    renderExtraMacros(todayData.extra, 1, 'todayExtraContainer', 'toggleTodayExtraBtn', 'todayExtraWrapper');
+}
+
+function createMacroLine(name, value, target, color) {
+    const val = Math.round(value);
+    const pct = Math.min((val / target) * 100, 100);
+    return `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 55px; font-size: 0.85rem; font-weight: 600; color: #6b7280;">${name}</div>
+            <div style="flex-grow: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; border-radius: 4px; transition: width 0.5s ease-out; background-color: ${color}; width: ${pct}%;"></div>
+            </div>
+            <div style="width: 45px; text-align: right; font-size: 0.9rem; font-weight: 700; color: ${color};">${val}g</div>
+        </div>
+    `;
+}
+
+function renderExtraMacros(extraData, divisor, containerId, btnId, wrapperId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    let hasExtra = false;
+
+    Object.keys(extraData).forEach(key => {
+        const avgValue = Math.round(extraData[key] / divisor);
         if (avgValue > 0) {
-            hasExtraMacros = true;
-
+            hasExtra = true;
             let unit = '';
             let name = key;
             if (key.endsWith('_g')) { unit = 'g'; name = key.slice(0, -2); }
@@ -443,78 +530,29 @@ function updateStats(periodData) {
             name = name.replace('total_', '').replace(/_/g, ' ');
             name = name.replace(/\b\w/g, l => l.toUpperCase());
 
-            const card = document.createElement('div');
-            card.className = 'macro-card extra-mini-card';
-            card.innerHTML = `
-                <div class="macro-label">${name}</div>
-                <div class="macro-value">${avgValue}${unit}</div>
+            container.innerHTML += `
+                <div class="macro-card extra-mini-card" style="padding: 1rem 0.5rem; border: 1px dashed #d1d5db; box-shadow: none; background: #f9fafb;">
+                    <div class="macro-label" style="font-size: 0.65rem; color: #9ca3af; margin-bottom: 0.25rem;">${name}</div>
+                    <div class="macro-value" style="font-size: 1.1rem; font-weight: 600; color: #374151;">${avgValue}${unit}</div>
+                </div>
             `;
-            extraContainer.appendChild(card);
         }
     });
 
-    const toggleBtnContainer = document.querySelector('.toggle-macros-container');
-    if (toggleBtnContainer) {
-        if (hasExtraMacros) {
-            toggleBtnContainer.style.display = 'block';
-        } else {
-            toggleBtnContainer.style.display = 'none';
-            document.getElementById('extraMacrosWrapper').style.gridTemplateRows = '0fr';
-            document.getElementById('toggleExtraMacrosBtn').querySelector('span').innerText = 'View More Nutrients';
-            document.getElementById('toggleExtraMacrosBtn').querySelector('i').style.transform = 'rotate(0deg)';
+    const btn = document.getElementById(btnId);
+    const wrapper = document.getElementById(wrapperId);
+    if (btn) {
+        btn.parentElement.style.display = hasExtra ? 'block' : 'none';
+        if (!hasExtra) {
+            wrapper.style.gridTemplateRows = '0fr';
+            btn.querySelector('span').innerText = 'View More Nutrients';
+            btn.querySelector('i').style.transform = 'rotate(0deg)';
         }
-    }
-}
-
-function updateTodayStatus() {
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' +
-        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-        String(today.getDate()).padStart(2, '0');
-
-    const todayData = state.userDB[todayStr] ? state.userDB[todayStr].main : { calories: 0 };
-
-    const titleEl = document.getElementById('todayStatusTitle');
-    const calText = document.getElementById('todayCalText');
-    const budgetText = document.getElementById('todayBudgetText');
-    const gaugeEl = document.getElementById('calorieGauge');
-
-    calText.innerText = `${Math.round(todayData.calories)} calories consumed`;
-    const consumed = Math.round(todayData.calories);
-    const target = Math.round(state.budget);
-    const remaining = target - consumed;
-    calText.innerText = `${consumed} / ${target} kcal`;
-    budgetText.innerText = `${Math.abs(remaining)} cal ${remaining >= 0 ? 'left in your budget' : 'over budget'}`;
-
-    let progressPercentage = (todayData.calories / state.budget) * 100;
-    if (progressPercentage > 100) progressPercentage = 100;
-
-    if (todayData.calories === 0) {
-        titleEl.innerText = "TODAY - NO DATA";
-        titleEl.style.color = "#6b7280";
-        gaugeEl.style.setProperty('--gauge-color', '#9ca3af');
-        gaugeEl.style.setProperty('--progress', '0');
-    } else if (todayData.calories > state.budget + 200) {
-        titleEl.innerText = "TODAY - OVER BUDGET";
-        titleEl.style.color = "#ef4444";
-        gaugeEl.style.setProperty('--gauge-color', '#ef4444');
-        gaugeEl.style.setProperty('--progress', progressPercentage);
-    } else if (todayData.calories < state.budget - 500) {
-        titleEl.innerText = "TODAY - UNDER TARGET";
-        titleEl.style.color = "#ff9966";
-        gaugeEl.style.setProperty('--gauge-color', '#ff9966');
-        gaugeEl.style.setProperty('--progress', progressPercentage);
-    } else {
-        titleEl.innerText = "TODAY - HEALTHY";
-        titleEl.style.color = "#10b981";
-        gaugeEl.style.setProperty('--gauge-color', '#10b981');
-        gaugeEl.style.setProperty('--progress', progressPercentage);
     }
 }
 
 function renderChart(periodData, start, end) {
     const ctx = document.getElementById('mainChart').getContext('2d');
-
     const labels = [];
     const dataPoints = [];
     const backgroundColors = [];
