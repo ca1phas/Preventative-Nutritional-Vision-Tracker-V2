@@ -83,6 +83,8 @@ function displayStatus(status) {
 // SUPABASE DATA FOR ADMIN DASHBOARD "VIEW" CLICKS
 // ==========================================
 async function displayUserDetails(userID) {
+    let displayName = userID;
+
     try {
         const { data: user, error: userError } = await supabase
             .from('users')
@@ -90,42 +92,57 @@ async function displayUserDetails(userID) {
             .eq('id', userID)
             .maybeSingle();
 
-        let nutritionRows = [];
-        let nutritionError = null;
-
-        // 1) Preferred: table has user_id for per-user filtering.
-        const byUserQuery = await supabase
-            .from('nutritions')
-            .select('*')
-            .eq('user_id', userID)
-            .order('created_at', { ascending: false });
-
-        if (!byUserQuery.error) {
-            nutritionRows = byUserQuery.data || [];
-        } else {
-            // 2) Fallback: table exists but no user_id column, or select restriction issue.
-            const fallbackQuery = await supabase
-                .from('nutritions')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(20);
-
-            if (!fallbackQuery.error) {
-                nutritionRows = fallbackQuery.data || [];
-            } else {
-                nutritionError = fallbackQuery.error;
-            }
-        }
-
         if (userError) throw userError;
-        if (nutritionError) throw nutritionError;
 
-        const displayName = user?.name || userID;
+        const { data: latestMeal, error: mealError } = await supabase
+            .from('meals')
+            .select('id, status, created_at')
+            .eq('user_id', userID)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (mealError) throw mealError;
+
+        displayName = user?.name || userID;
         document.querySelector('.page-header h2').textContent = `User Name: ${displayName}`;
 
-        if (!nutritionRows || nutritionRows.length === 0) {
+        if (!latestMeal) {
             displayStatus('healthy');
-            ingredientList.innerHTML = '<li>No nutrition records found for this user.</li>';
+            ingredientList.innerHTML = '<li>No meal records found for this user.</li>';
+            caloriesEl.textContent = '-';
+            proteinEl.textContent = '-';
+            carbsEl.textContent = '-';
+            fiberEl.textContent = '-';
+            waterEl.textContent = '-';
+            fatsEl.textContent = '-';
+            return;
+        }
+
+        const { data: foodItems, error: foodItemsError } = await supabase
+            .from('food_items')
+            .select('id, meal_id, nutrition_id, food_name')
+            .eq('meal_id', latestMeal.id)
+            .order('created_at', { ascending: true });
+
+        if (foodItemsError) throw foodItemsError;
+
+        const nutritionIds = Array.from(new Set((foodItems || []).map((item) => item.nutrition_id).filter(Boolean)));
+
+        let nutritionRows = [];
+        if (nutritionIds.length > 0) {
+            const { data: nutritions, error: nutritionError } = await supabase
+                .from('nutritions')
+                .select('*')
+                .in('id', nutritionIds);
+
+            if (nutritionError) throw nutritionError;
+            nutritionRows = nutritions || [];
+        }
+
+        if (!foodItems || foodItems.length === 0 || !nutritionRows || nutritionRows.length === 0) {
+            displayStatus(normalizeStatus(latestMeal.status));
+            ingredientList.innerHTML = '<li>No food or nutrition records found for this meal.</li>';
             caloriesEl.textContent = '-';
             proteinEl.textContent = '-';
             carbsEl.textContent = '-';
@@ -142,13 +159,16 @@ async function displayUserDetails(userID) {
         const totalWater = nutritionRows.reduce((sum, row) => sum + Number(row.total_water_ml || 0), 0);
         const totalFats = nutritionRows.reduce((sum, row) => sum + Number(row.total_fat_g || 0), 0);
 
-        let status = 'healthy';
-        if (totalCarbs > 150) status = 'intervention';
-        else if (totalCarbs > 80) status = 'warning';
+        let status = normalizeStatus(latestMeal.status);
+        if (!status) {
+            status = 'healthy';
+            if (totalCarbs > 150) status = 'intervention';
+            else if (totalCarbs > 80) status = 'warning';
+        }
         displayStatus(status);
 
-        ingredientList.innerHTML = nutritionRows.map((row) => {
-            const name = row.food_name || row.item || row.name || 'Meal item';
+        ingredientList.innerHTML = foodItems.map((row) => {
+            const name = row.food_name || 'Meal item';
             return `<li><span style="text-transform: capitalize;">${name}</span></li>`;
         }).join('');
 
@@ -160,7 +180,7 @@ async function displayUserDetails(userID) {
         fatsEl.textContent = `${totalFats.toFixed(1)} g`;
     } catch (err) {
         console.error('Unable to load user nutrition details:', err);
-        document.querySelector('.page-header h2').textContent = 'User Name';
+        document.querySelector('.page-header h2').textContent = `User Name: ${displayName}`;
         ingredientList.innerHTML = '<li>Unable to load data from database.</li>';
         caloriesEl.textContent = '-';
         proteinEl.textContent = '-';
@@ -170,6 +190,20 @@ async function displayUserDetails(userID) {
         fatsEl.textContent = '-';
         displayStatus('warning');
     }
+}
+
+function normalizeStatus(statusValue) {
+    const numericStatus = Number(statusValue);
+    if (numericStatus === 0) return 'healthy';
+    if (numericStatus === 1) return 'warning';
+    if (numericStatus === 2) return 'intervention';
+
+    const stringStatus = String(statusValue || '').toLowerCase();
+    if (stringStatus === 'healthy' || stringStatus === 'warning' || stringStatus === 'intervention') {
+        return stringStatus;
+    }
+
+    return '';
 }
 
 // ===== LOGOUT =====
