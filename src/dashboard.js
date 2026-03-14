@@ -19,6 +19,7 @@ function redirectToHome() {
     window.location.href = 'index.html';
 }
 
+const USE_MOCK_DATA = true;
 await checkAdminAuth();
 
 const currentTab = new URLSearchParams(window.location.search).get('tab') || 'patients';
@@ -26,46 +27,22 @@ const currentTab = new URLSearchParams(window.location.search).get('tab') || 'pa
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 const tableBody = document.getElementById('userTableBody');
-const dailyTabLink = document.getElementById('dailyTabLink');
-const patientsTabLink = document.getElementById('patientsTabLink');
-const dailyPanel = document.getElementById('dailyPanel');
-const patientsPanel = document.getElementById('patientsPanel');
-const dailyMeta = document.getElementById('dailyMeta');
-const dailyJsonPreview = document.getElementById('dailyJsonPreview');
 
-// status: 0=healthy, 1=warning, 2=intervention
+
+// Mock data for testing
+const MOCK_USERS = [
+    { userID: 'U001', lastMeal: '2 hours ago', calories: 650, carbs: 75, status: 'healthy' },
+    { userID: 'U002', lastMeal: '4 hours ago', calories: 890, carbs: 120, status: 'warning' },
+    { userID: 'U003', lastMeal: '1 hour ago', calories: 1200, carbs: 180, status: 'intervention' },
+    { userID: 'DOC001', lastMeal: '6 hours ago', calories: 520, carbs: 45, status: 'healthy' },
+    { userID: 'PATIENT123', lastMeal: '3 hours ago', calories: 750, carbs: 95, status: 'warning' }
+];
+
 function getStatusBadge(status) {
     if (status === 0) return '<span class="badge badge-healthy">🟢 Healthy</span>';
     if (status === 1) return '<span class="badge badge-warning">🟡 Warning</span>';
     if (status === 2) return '<span class="badge badge-intervention">🔴 Intervention</span>';
     return '<span class="badge">Unknown</span>';
-}
-
-function initTabs() {
-    if (currentTab === 'daily') {
-        dailyTabLink.classList.add('active');
-        patientsTabLink.classList.remove('active');
-        dailyPanel.classList.remove('hidden');
-        patientsPanel.classList.add('hidden');
-        renderDailyPanel();
-    } else {
-        patientsTabLink.classList.add('active');
-        dailyTabLink.classList.remove('active');
-        patientsPanel.classList.remove('hidden');
-        dailyPanel.classList.add('hidden');
-        loadDashboard();
-    }
-}
-
-function renderDailyPanel() {
-    const lastRecord = JSON.parse(sessionStorage.getItem('lastSubmittedRecord') || 'null');
-    if (!lastRecord) {
-        dailyMeta.textContent = 'No meal submitted yet in this session.';
-        dailyJsonPreview.textContent = JSON.stringify({ message: 'Submit a meal via Upload → Confirm to see data here.' }, null, 2);
-        return;
-    }
-    dailyMeta.textContent = `User: ${lastRecord.userID} | Submitted: ${new Date(lastRecord.datetime).toLocaleString()}`;
-    dailyJsonPreview.textContent = JSON.stringify(lastRecord, null, 2);
 }
 
 async function loadDashboard() {
@@ -135,4 +112,4 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
-initTabs();
+loadDashboard();

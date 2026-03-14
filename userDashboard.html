@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
+    <title>Nutrition Dashboard - Nutrition Tracker</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script type="module" src="/src/userDashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="dashboard-body">
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-brand">
+          <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
+          <div class="navbar-links">
+            <a href="userProfile.html" id="profileTab">Profile</a>
+            <a href="userDashboard.html" id="dashboardTab" class="active"
+              >Dashboard</a
+            >
+            <a href="history.html" id="historyTab">History</a>
+            <a href="upload.html">Upload Meal</a>
+            <a href="index.html">Homepage</a>
+          </div>
+        </div>
+        <div style="margin-left: auto; padding-left: 3rem">
+          <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Dashboard Panel -->
+      <div id="dashboardPanel" class="panel-content">
+        <div id="overallUserStatus" class="status-banner" style="margin-bottom: 2rem;">
+      </div>
+
+      <!-- Daily Summary -->
+        <div class="summary-section">
+          <h3>
+            <i class="fas fa-calendar-day"></i> Today's Summary -
+            <span id="currentDate"></span>
+          </h3>
+          <div class="nutrition-grid">
+            <div class="nutrition-card calories">
+              <p>Total Calories</p>
+              <p id="dailyCalories">0</p>
+            </div>
+            <div class="nutrition-card protein">
+              <p>Protein (g)</p>
+              <p id="dailyProtein">0</p>
+            </div>
+            <div class="nutrition-card carbs">
+              <p>Carbs (g)</p>
+              <p id="dailyCarbs">0</p>
+            </div>
+            <div class="nutrition-card fats">
+              <p>Fats (g)</p>
+              <p id="dailyFats">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Summary -->
+        <div class="summary-section" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: #1f2937; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-chart-line" style="color: #64748b;"></i> Weekly Nutrition Trend
+            </h3>
+            <canvas id="nutritionTrendChart" height="100"></canvas>
+        </div>
+        <div class="page-header">
+          <h2><i class="fas fa-chart-line"></i> Nutrition Dashboard</h2>
+          <p style="color: #6b7280; margin-top: 0.5rem">
+            Track your daily and monthly nutrition insights
+          </p>
+        </div>
+
+        <!-- Monthly Summary -->
+        <div class="summary-section">
+          <h3>
+            <i class="fas fa-calendar-alt"></i> Monthly Summary -
+            <span id="currentMonth"></span>
+          </h3>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div
+                class="stat-icon"
+                style="
+                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                "
+              >
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <div class="stat-details">
+                <p class="stat-label">Highest Calorie Day</p>
+                <p class="stat-value" id="highestCalorieDay"></p>
+                <p class="stat-subtext" id="highestCalorieValue"></p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div
+                class="stat-icon"
+                style="
+                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                "
+              >
+                <i class="fas fa-arrow-down"></i>
+              </div>
+              <div class="stat-details">
+                <p class="stat-label">Lowest Calorie Day</p>
+                <p class="stat-value" id="lowestCalorieDay"></p>
+                <p class="stat-subtext" id="lowestCalorieValue"></p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div
+                class="stat-icon"
+                style="
+                  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                "
+              >
+                <i class="fas fa-chart-bar"></i>
+              </div>
+              <div class="stat-details">
+                <p class="stat-label">Average Daily Calories</p>
+                <p class="stat-value" id="avgDailyCalories"></p>
+                <p class="stat-subtext">This month</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div
+                class="stat-icon"
+                style="
+                  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                "
+              >
+                <i class="fas fa-utensils"></i>
+              </div>
+              <div class="stat-details">
+                <p class="stat-label">Total Meals Logged</p>
+                <p class="stat-value" id="totalMealsMonth"></p>
+                <p class="stat-subtext">This month</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+
+        <!-- Insights Summary -->
+        <div class="summary-section">
+          <h3><i class="fas fa-lightbulb"></i> Insights & Recommendations</h3>
+          <div class="insights-container" id="insightsContainer">
+            <!-- Insights will be dynamically loaded -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

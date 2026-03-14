@@ -37,8 +37,13 @@ mealImageInput.addEventListener('change', (event) => {
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    if (!currentImageDataUrl || !currentImageFile) {
-        showError("Please select a valid image file first.");
+    if (sessionStorage.getItem('profileComplete') !== 'true') {
+        document.getElementById('profilePromptModal').classList.remove('hidden');
+        return;
+    }
+    const file = mealImage.files[0];
+    if (!file || !isValidFormat(file)) {
+        showError('Invalid file type. Please use PNG, JPEG, WEBP, HEIC, or HEIF.');
         return;
     }
 

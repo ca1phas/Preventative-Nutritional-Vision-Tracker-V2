@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
     <title>Upload Meal - Nutrition Tracker</title>
     <link
       rel="stylesheet"
@@ -18,8 +19,8 @@
         <div class="navbar-brand">
           <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
           <div class="navbar-links">
-            <a href="user-dashboard.html">Profile</a>
-            <a href="user-dashboard.html#dashboard">Dashboard</a>
+            <a href="userProfile.html">Profile</a>
+            <a href="userDashboard.html">Dashboard</a>
             <a href="history.html">History</a>
             <a href="upload.html" class="active">Upload Meal</a>
             <a href="index.html">Homepage</a>
@@ -71,5 +72,19 @@
         </div>
       </div>
     </div>
+    <div id="profilePromptModal" class="meal-modal-overlay hidden" style="z-index: 2000;">
+    <div class="meal-modal" style="padding: 2.5rem; text-align: center;">
+      <h3 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem;">
+        <i class="fas fa-exclamation-circle"></i> Profile Incomplete
+      </h3>
+      <p style="margin-bottom: 2rem; color: #4b5563;">
+        Please complete your user profile before analyzing a meal.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="userProfile.html" class="btn btn-primary" style="text-decoration: none;">Go to Profile</a>
+        <button onclick="document.getElementById('profilePromptModal').classList.add('hidden')" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
   </body>
 </html>
