@@ -29,8 +29,6 @@ async function initializeHistoryPage() {
 
     currentUserId = user.id;
 
-    // Display user email or generic text if unavailable
-    historyUserDisplay.textContent = `User: ${user.email || 'Authenticated User'}`;
 
     // Load all meals initially
     await loadMeals('');
