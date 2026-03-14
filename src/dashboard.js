@@ -72,6 +72,7 @@ async function fetchPatients() {
         .order('updated_at', { ascending: false });
 
     if (dbError) throw dbError;
+    
     return users || [];
 }
 
@@ -130,7 +131,7 @@ function renderTable(patients) {
             <tr>
                 <td>${escapeHtml(user.name || user.id)}</td>
                 <td>${relativeTime(user.updated_at)}</td>
-                <td>${user.age ?? '-'}</td>
+                <td>${users.age ?? '-'}</td>
                 <td>BMI: ${bmi}</td>
                 <td>${getStatusBadge(user.status)}</td>
                 <td>
