@@ -1,3 +1,7 @@
+import { logoutUser } from './supabase.js';
+import { getCurrentUser } from './auth-guard.js';
+import './auth-guard.js'; 
+
 document.getElementById('learnMoreBtn')?.addEventListener('click', () => {
   document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
 });
@@ -5,8 +9,34 @@ document.getElementById('contactTeamBtn')?.addEventListener('click', () => {
   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
 });
 
-// need login before click "Start Tracking" and "Get Started Now" button
+// need login before click "Start Tracking" and "Get Started Now" button ( DONE )
 // Need user to login first
+// If user clicks User Dashboard or AdminPortal Button it also redirects them to login if they are not logged in 
+
+// Admin Portal
+document.getElementById('adminRole')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  window.location.href = 'dashboard.html';
+});
+
+// User Dashboard
+document.getElementById('userRole')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  window.location.href = 'userDashboard.html';
+});
+
+async function requireLogin(e) {
+  e.preventDefault();
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    window.location.href = 'login.html';
+  } else {
+    // User is logged in, proceed
+    const destination = e.target.id === 'getStartedBtn' ? 'userProfile.html' : 'userDashboard.html';
+    window.location.href = destination;
+  }
+}
 
 
 document.getElementById('getStartedBtn')?.addEventListener('click', requireLogin);
@@ -50,10 +80,16 @@ document.getElementById('loginBtn')?.addEventListener('click', (e) => {
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
+    const href = this.getAttribute('href');
+    
+    // Skip if href is just '#' with nothing after it
+    if (href === '#') return;
+    
+    const target = document.querySelector(href);
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
 
 // Active nav on scroll
 window.addEventListener('scroll', () => {
@@ -97,39 +133,93 @@ if (mobileMenuToggle && navMenu) {
 }
 
 // let homepage show same header as other pages when user logged in
-document.addEventListener('DOMContentLoaded', () => {
-  const isAuth = sessionStorage.getItem('isUserAuthenticated') === 'true';
-  if (isAuth) {
-    const navMenu = document.getElementById('navMenu');
-    const userControls = document.querySelector('.user-controls');
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const user = await getCurrentUser();
+    console.log('User in DOMContentLoaded:', user);
+    
+    if (user) {
+      const navMenu = document.getElementById('navMenu');
+      const userControls = document.querySelector('.user-controls');
 
-    if (navMenu) {
-      navMenu.innerHTML = `
-                <li><a href="userProfile.html">Profile</a></li>
-                <li><a href="userDashboard.html">Dashboard</a></li>
-                <li><a href="history.html">History</a></li>
-                <li><a href="upload.html">Upload Meal</a></li>
-                <li class="user-dropdown" style="position: relative;">
-                  <a href="#" style="cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('show'); return false;">
-                    Homepage <i class="fas fa-chevron-down"></i>
-                  </a>
-                  <div class="dropdown-menu" style="position: absolute; top: 100%; left: 0;">
-                    <a href="index.html#about" class="dropdown-item">About</a>
-                    <a href="index.html#solution" class="dropdown-item">Solution</a>
-                    <a href="index.html#features" class="dropdown-item">Features</a>
-                    <a href="index.html#contact" class="dropdown-item">Contact</a>
-                  </div>
-                </li>
-            `;
-    }
+      console.log('navMenu exists:', !!navMenu);
+      console.log('userControls exists:', !!userControls);
 
-    if (userControls) {
-      userControls.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
-      document.getElementById('logoutBtnNav').addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = 'index.html';
-      });
+      if (navMenu) {
+        navMenu.innerHTML = `
+          <li><a href="userProfile.html">Profile</a></li>
+          <li><a href="userDashboard.html">Dashboard</a></li>
+          <li><a href="history.html">History</a></li>
+          <li><a href="upload.html">Upload Meal</a></li>
+          <li class="user-dropdown" id="homepageDropdown" style="position: relative;">
+            <a href="#" class="dropdown-toggle" style="cursor: pointer;">
+              Homepage <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="dropdown-menu" style="position: absolute; top: 100%; left: 0; display: none; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;">
+              <a href="index.html#about" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">About</a>
+              <a href="index.html#solution" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">Solution</a>
+              <a href="index.html#features" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">Features</a>
+              <a href="index.html#contact" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333;">Contact</a>
+            </div>
+          </li>
+        `;
+
+        // Setup dropdown - delay to ensure DOM is ready
+        setTimeout(() => {
+          const dropdownToggle = navMenu.querySelector('.dropdown-toggle');
+          const dropdownMenu = navMenu.querySelector('.dropdown-menu');
+          
+          console.log('dropdownToggle exists:', !!dropdownToggle);
+          console.log('dropdownMenu exists:', !!dropdownMenu);
+          
+          if (dropdownToggle && dropdownMenu) {
+            dropdownToggle.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Dropdown clicked');
+              const isVisible = dropdownMenu.style.display === 'block';
+              dropdownMenu.style.display = isVisible ? 'none' : 'block';
+              console.log('Dropdown now:', dropdownMenu.style.display);
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+              if (!document.getElementById('homepageDropdown')?.contains(e.target)) {
+                dropdownMenu.style.display = 'none';
+              }
+            });
+          }
+        }, 100);
+      }
+
+      if (userControls) {
+        userControls.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
+        
+        setTimeout(() => {
+          const logoutBtn = document.getElementById('logoutBtnNav');
+          if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              logoutBtn.disabled = true;
+              logoutBtn.textContent = 'Logging out...';
+
+              try {
+                await logoutUser();
+                window.location.replace('index.html');
+              } catch (err) {
+                console.error('Logout error:', err);
+                logoutBtn.disabled = false;
+                logoutBtn.textContent = 'Logout';
+              }
+            });
+          }
+        }, 100);
+      }
+    } else {
+      console.log('User not logged in');
     }
+  } catch (err) {
+    console.error('Error in DOMContentLoaded:', err);
   }
 });
 

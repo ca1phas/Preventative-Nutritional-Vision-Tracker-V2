@@ -1,11 +1,13 @@
-import { supabase } from './supabase.js';
+import { supabase, logoutUser } from './supabase.js';
+import './auth-guard.js';
+
 
 // ===== CONFIGURATION =====
 // Set to false when integrating with backend API
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // ===== AUTH CHECK =====
-// TODO
+
 
 // ===== MOCK DATA (remove this section when integrating with backend) =====
 const MOCK_MONTHLY_SUMMARY = {

@@ -32,9 +32,15 @@ export async function authenticateUser(email, password) {
     };
 }
 
-export const logoutUser = async () => {
-    await supabase.auth.signOut();
-};
+//export const logoutUser = async () => {
+//    await supabase.auth.signOut();
+//};
+
+export async function logoutUser() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+}
+
 
 // ==========================================
 // USERS CRUD

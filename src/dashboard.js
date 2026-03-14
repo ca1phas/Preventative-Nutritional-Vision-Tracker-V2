@@ -1,13 +1,28 @@
-import { supabase } from './supabase.js';
+import { supabase, logoutUser } from './supabase.js';
+import './auth-guard.js';  
 
 // Admin auth check — uses is_admin flag from users table
-// TODO
+async function checkAdminAuth() {
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const adminStatus = await isAdmin();
+    if (!adminStatus) {
+        alert('Admin access required.');
+        window.location.href = 'index.html';
+        return;
+    }
+}
+
 function redirectToHome() {
     alert('Admin access required.');
     window.location.href = 'index.html';
 }
 
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 await checkAdminAuth();
 
 const currentTab = new URLSearchParams(window.location.search).get('tab') || 'patients';
@@ -95,9 +110,20 @@ async function loadDashboard() {
     }
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    sessionStorage.clear();
-    window.location.href = 'index.html';
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const button = e.target;
+    button.disabled = true;
+    button.textContent = 'Logging out...';
+
+    try {
+        await logoutUser();
+        window.location.replace('index.html');
+    } catch (err) {
+        console.error('Logout error:', err);
+        button.disabled = false;
+        button.textContent = 'Logout';
+    }
 });
 
 loadDashboard();

@@ -1,3 +1,4 @@
+import './auth-guard.js'; 
 const HISTORY_STORAGE_KEY = 'userMealHistory';
 const DEFAULT_MEAL_IMAGE = '/images/hero-background.jpg';
 

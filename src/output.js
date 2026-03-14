@@ -1,6 +1,7 @@
 import localforage from 'localforage';
 import { getUserProfile, getUserMeals, updateMeal, updateUserProfile } from './supabase.js';
 import { generateAIAssessment } from './ai-service.js';
+import './auth-guard.js'; 
 
 // Nutrient display mappings
 const nutrientLabels = {

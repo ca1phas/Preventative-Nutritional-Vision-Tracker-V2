@@ -1,4 +1,5 @@
 import { analyzeFoodImage } from './ai-service.js';
+import { validateUserProfile } from './auth-guard.js';
 
 const uploadForm = document.getElementById('uploadForm');
 const mealImageInput = document.getElementById('mealImage');
@@ -23,7 +24,6 @@ mealImageInput.addEventListener('change', (event) => {
 
     currentImageFile = file;
 
-    // Convert image to Base64 (Data URL) for both preview and the AI service
     const reader = new FileReader();
     reader.onload = (e) => {
         currentImageDataUrl = e.target.result;
@@ -37,11 +37,16 @@ mealImageInput.addEventListener('change', (event) => {
 uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    if (sessionStorage.getItem('profileComplete') !== 'true') {
-        document.getElementById('profilePromptModal').classList.remove('hidden');
+    // Check if user profile is complete
+    const validation = await validateUserProfile();
+    
+    if (!validation.valid) {
+        console.error(validation.message);
+        showError(`Please complete your profile first. ${validation.message}`);
         return;
     }
-    const file = mealImage.files[0];
+
+    const file = mealImageInput.files[0];
     if (!file || !isValidFormat(file)) {
         showError('Invalid file type. Please use PNG, JPEG, WEBP, HEIC, or HEIF.');
         return;
@@ -79,4 +84,9 @@ uploadForm.addEventListener('submit', async (e) => {
 function showError(message) {
     errorMsg.textContent = message;
     errorMsg.classList.remove('hidden');
+}
+
+function isValidFormat(file) {
+    const validFormats = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
+    return validFormats.includes(file.type);
 }

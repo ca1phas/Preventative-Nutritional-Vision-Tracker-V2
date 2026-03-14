@@ -1,49 +1,59 @@
 import './style.css';
+import './auth-guard.js';
+import { supabase, logoutUser } from './supabase.js';
+//DONE
+const currentUser = await getCurrentUser();
+console.log(currentUser);
 
 // ===== CONFIGURATION =====
-// Set to false when integrating with backend API
-const USE_MOCK_DATA = true;
-
-// ===== AUTH CHECK =====
-// TODO
-
-// ===== MOCK DATA (remove this section when integrating with backend) =====
-const MOCK_USER_PROFILE = {
-    userID: currentUser,
-    name: 'XXX',
-    age: 35,
-    gender: 'male',
-    weight: 75.5,
-    height: 175,
-    medicalNotes: 'Pre-diabetic. Avoid high sugar intake. Regular monitoring required.'
-};
-
-// ===== END OF MOCK DATA =====
+const USE_MOCK_DATA = false;
 
 // ===== PROFILE SECTION =====
-function loadUserProfile() {
-    if (USE_MOCK_DATA) {
-        // Load mock data
-        document.getElementById('userName').value = MOCK_USER_PROFILE.name;
-        document.getElementById('userAge').value = MOCK_USER_PROFILE.age;
-        document.getElementById('userGender').value = MOCK_USER_PROFILE.gender;
-        document.getElementById('userWeight').value = MOCK_USER_PROFILE.weight;
-        document.getElementById('userHeight').value = MOCK_USER_PROFILE.height;
-        document.getElementById('medicalNotes').value = MOCK_USER_PROFILE.medicalNotes;
-        calculateBMI();
-    } else {
-        // TODO: Replace with actual API call
-        // fetch(`/api/users/${currentUser}/profile`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         document.getElementById('userName').value = data.name;
-        //         document.getElementById('userAge').value = data.age;
-        //         document.getElementById('userGender').value = data.gender;
-        //         document.getElementById('userWeight').value = data.weight;
-        //         document.getElementById('userHeight').value = data.height;
-        //         document.getElementById('medicalNotes').value = data.medicalNotes;
-        //         calculateBMI();
-        //     });
+async function loadUserProfile() {
+    try {
+        console.log('Current user ID:', currentUser.id);
+
+        const { data: profile, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (error) {
+            console.error('Full error object:', error);
+            throw error;
+        }
+
+        console.log('Profile loaded:', profile);
+
+        // ADD ERROR CHECKING HERE
+        if (profile) {
+            const userName = document.getElementById('userName');
+            const userAge = document.getElementById('userAge');
+            const userGender = document.getElementById('userGender');
+            const userWeight = document.getElementById('userWeight');
+            const userHeight = document.getElementById('userHeight');
+            const medicalNotes = document.getElementById('medicalNotes');
+
+            if (!userName) console.error('userName element missing');
+            if (!userAge) console.error('userAge element missing');
+            if (!userGender) console.error('userGender element missing');
+            if (!userWeight) console.error('userWeight element missing');
+            if (!userHeight) console.error('userHeight element missing');
+            if (!medicalNotes) console.error('medicalNotes element missing');
+
+            if (userName) userName.value = profile.name || '';
+            if (userAge) userAge.value = profile.age || '';
+            if (userGender) userGender.value = profile.gender || '';
+            if (userWeight) userWeight.value = profile.weight || '';
+            if (userHeight) userHeight.value = profile.height || '';
+            if (medicalNotes) medicalNotes.value = profile.medical_notes || '';
+            
+            calculateBMI();
+        }
+    } catch (err) {
+        console.error('Catch error:', err);
+        alert('Error: ' + err.message);
     }
 }
 
@@ -60,45 +70,77 @@ function calculateBMI() {
 document.getElementById('userWeight').addEventListener('input', calculateBMI);
 document.getElementById('userHeight').addEventListener('input', calculateBMI);
 
-document.getElementById('profileForm').addEventListener('submit', (e) => {
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // Check if all elements exist
+    const userName = document.getElementById('userName');
+    const userAge = document.getElementById('userAge');
+    const userGender = document.getElementById('userGender');
+    const userWeight = document.getElementById('userWeight');
+    const userHeight = document.getElementById('userHeight');
+    const medicalNotes = document.getElementById('medicalNotes');
+
+    // Log which ones are missing
+    if (!userName) console.error('userName missing');
+    if (!userAge) console.error('userAge missing');
+    if (!userGender) console.error('userGender missing');
+    if (!userWeight) console.error('userWeight missing');
+    if (!userHeight) console.error('userHeight missing');
+    if (!medicalNotes) console.error('medicalNotes missing');
+
+    // Only continue if all exist
+    if (!userName || !userAge || !userGender || !userWeight || !userHeight || !medicalNotes) {
+        alert('Error: One or more form fields are missing from HTML');
+        return;
+    }
+
     const profileData = {
-        userID: currentUser,
-        name: document.getElementById('userName').value,
-        age: parseInt(document.getElementById('userAge').value),
-        gender: document.getElementById('userGender').value,
-        weight: parseFloat(document.getElementById('userWeight').value),
-        height: parseFloat(document.getElementById('userHeight').value),
-        medicalNotes: document.getElementById('medicalNotes').value
+        name: userName.value,
+        age: parseInt(userAge.value),
+        gender: userGender.value,
+        weight: parseFloat(userWeight.value),
+        height: parseFloat(userHeight.value),
+        medical_notes: medicalNotes.value
     };
 
     if (USE_MOCK_DATA) {
-        // Simulate save
         sessionStorage.setItem('mockUserProfile', JSON.stringify(profileData));
-        sessionStorage.setItem('profileComplete', 'true');
-
-        alert('Profile saved successfully! (Mock mode - data not persisted)');
+        alert('Profile saved successfully! (Mock mode)');
         console.log('Profile data:', profileData);
     } else {
-        // TODO: Replace with actual API call
-        // fetch(`/api/users/${currentUser}/profile`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(profileData)
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //     alert('Profile saved successfully!');
-        // });
+        try {
+            const { error } = await supabase
+                .from('users')
+                .update(profileData)
+                .eq('id', currentUser.id);
+
+            if (error) throw error;
+
+            alert('Profile saved successfully!');
+            console.log('Profile saved:', profileData);
+        } catch (err) {
+            console.error('Error saving profile:', err);
+            alert('Failed to save profile: ' + err.message);
+        }
     }
 });
 
-// ===== LOGOUT =====
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    // TODO: logout
-    window.location.href = 'index.html';
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const button = e.target;
+    button.disabled = true;
+    button.textContent = 'Logging out...';
+
+    try {
+        await logoutUser();
+        window.location.replace('index.html');
+    } catch (err) {
+        console.error('Logout error:', err);
+        button.disabled = false;
+        button.textContent = 'Logout';
+    }
 });
 
-// ===== INITIALIZE =====
-loadUserProfile();
+// Initialize
+setTimeout(loadUserProfile(), 2000)

@@ -9,7 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <script type="module" src="/src/userProfile.js"></script>
+    <script type="module" src="/src/userProfile.js" defer></script>
   </head>
   <body class="dashboard-body">
     <nav class="navbar">
@@ -150,13 +150,6 @@
             <div class="button-group">
               <button type="submit" class="btn btn-success">
                 <i class="fas fa-save"></i> Save Profile
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="loadUserProfile()"
-              >
-                <i class="fas fa-undo"></i> Reset
               </button>
             </div>
           </form>
