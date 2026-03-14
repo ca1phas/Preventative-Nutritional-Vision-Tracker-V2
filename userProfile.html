@@ -55,6 +55,7 @@
 
         <div class="profile-card">
           <form id="profileForm">
+            <p id="profileStatus" style="display: none; margin-bottom: 1rem"></p>
             <div class="form-grid">
               <div class="form-group">
                 <label for="userName"
@@ -153,8 +154,8 @@
               </button>
               <button
                 type="button"
+                id="resetProfileBtn"
                 class="btn btn-secondary"
-                onclick="loadUserProfile()"
               >
                 <i class="fas fa-undo"></i> Reset
               </button>
