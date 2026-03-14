@@ -562,7 +562,7 @@ body {
 }
 
 .nutrition-card.calories {
-  background: #dbeafe;
+  background: #fde7ef;
 }
 
 .nutrition-card.protein {
@@ -570,11 +570,19 @@ body {
 }
 
 .nutrition-card.carbs {
-  background: #fef3c7;
+  background: #ffe8d6;
+}
+
+.nutrition-card.water {
+  background: #dbeafe;
 }
 
 .nutrition-card.fats {
   background: #e9d5ff;
+}
+
+.nutrition-card.fiber {
+  background: hwb(46 74% 0%);  
 }
 
 .nutrition-card p:first-child {
@@ -589,7 +597,7 @@ body {
 }
 
 .nutrition-card.calories p:last-child {
-  color: #1e40af;
+  color: #be123c;
 }
 
 .nutrition-card.protein p:last-child {
@@ -597,7 +605,11 @@ body {
 }
 
 .nutrition-card.carbs p:last-child {
-  color: #92400e;
+  color: #9a3412;
+}
+
+.nutrition-card.water p:last-child {
+  color: #1d4ed8;
 }
 
 .nutrition-card.fats p:last-child {

@@ -1,66 +1,79 @@
 import './style.css';
+import { supabase } from './supabaseConnect.js';
 
 // Admin Dashboard access requires admin authentication
-// For Hackathon MVP, we can bypass strict auth or leave the mock in place.
 if (sessionStorage.getItem('isAdminAuthenticated') !== 'true') {
-    // Uncomment this to enforce admin login during the demo
-    // alert('Admin login required to access the Admin Portal.');
+    // Uncomment to enforce admin login:
+    // alert('Admin login required.');
     // window.location.href = 'index.html';
 }
-
-const USE_MOCK_DATA = true;
 
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 const tableBody = document.getElementById('userTableBody');
 
-// Mock data for testing
-const MOCK_USERS = [
-    { userID: 'U001', lastMeal: '2 hours ago', calories: 650, carbs: 75, status: 'healthy' },
-    { userID: 'U002', lastMeal: '4 hours ago', calories: 890, carbs: 120, status: 'warning' },
-    { userID: 'U003', lastMeal: '1 hour ago', calories: 1200, carbs: 180, status: 'intervention' },
-    { userID: 'DOC001', lastMeal: '6 hours ago', calories: 520, carbs: 45, status: 'healthy' },
-    { userID: 'PATIENT123', lastMeal: '3 hours ago', calories: 750, carbs: 95, status: 'warning' }
-];
-
-function getStatusBadge(status) {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'healthy') return '<span class="badge badge-healthy">🟢 Healthy</span>';
-    if (statusLower === 'warning') return '<span class="badge badge-warning">🟡 Warning</span>';
-    if (statusLower === 'intervention') return '<span class="badge badge-intervention">🔴 Intervention</span>';
+// Map the integer status column (0=healthy, 1=warning, 2=intervention) to a badge
+function getStatusBadge(statusInt) {
+    const s = Number(statusInt);
+    if (s === 0) return '<span class="badge badge-healthy">🟢 Healthy</span>';
+    if (s === 1) return '<span class="badge badge-warning">🟡 Warning</span>';
+    if (s === 2) return '<span class="badge badge-intervention">🔴 Intervention</span>';
     return '<span class="badge">Unknown</span>';
+}
+
+// Format a UTC ISO timestamp as a human-readable relative time
+function relativeTime(isoString) {
+    if (!isoString) return 'N/A';
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+    const diffDay = Math.floor(diffHr / 24);
+    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 }
 
 async function loadDashboard() {
     loading.classList.remove('hidden');
     error.classList.add('hidden');
 
-    try {
-        let users;
-        if (USE_MOCK_DATA) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            users = MOCK_USERS;
-        }
+    const { data: users, error: dbError } = await supabase
+        .from('users')
+        .select('id, name, age, gender, weight, height, status, updated_at')
+        .eq('is_admin', false)
+        .order('updated_at', { ascending: false });
 
-        tableBody.innerHTML = users.map(user => `
+    loading.classList.add('hidden');
+
+    if (dbError) {
+        error.textContent = `Unable to load dashboard data: ${dbError.message}`;
+        error.classList.remove('hidden');
+        return;
+    }
+
+    if (!users || users.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No users found.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = users.map(user => {
+        const bmi = (user.weight && user.height)
+            ? (user.weight / ((user.height / 100) ** 2)).toFixed(1)
+            : '-';
+        return `
             <tr>
-                <td>${user.userID}</td>
-                <td>${user.lastMeal || 'N/A'}</td>
-                <td>${user.calories || '-'}</td>
-                <td>${user.carbs ? user.carbs + 'g' : '-'}</td>
+                <td>${user.name || user.id}</td>
+                <td>${relativeTime(user.updated_at)}</td>
+                <td>${user.age || '-'}</td>
+                <td>BMI: ${bmi}</td>
                 <td>${getStatusBadge(user.status)}</td>
                 <td>
-                    <a href="result.html?userID=${encodeURIComponent(user.userID)}" class="btn-view" data-user-id="${user.userID}">View</a>
+                    <a href="result.html?userID=${encodeURIComponent(user.id)}" class="btn-view">View</a>
                 </td>
             </tr>
-        `).join('');
-
-    } catch (err) {
-        error.textContent = 'Unable to load dashboard data. Please try again.';
-        error.classList.remove('hidden');
-    } finally {
-        loading.classList.add('hidden');
-    }
+        `;
+    }).join('');
 }
 
 // Handle Logout

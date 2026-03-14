@@ -1,4 +1,5 @@
 import './style.css';
+import { supabase } from './supabaseConnect.js';
 
 // Check if viewing from dashboard (has userID parameter)
 const urlParams = new URLSearchParams(window.location.search);
@@ -9,10 +10,12 @@ const ingredientList = document.getElementById('ingredientList');
 const caloriesEl = document.getElementById('calories');
 const proteinEl = document.getElementById('protein');
 const carbsEl = document.getElementById('carbs');
+const fiberEl = document.getElementById('fiber');
+const waterEl = document.getElementById('water');
 const fatsEl = document.getElementById('fats');
 
 if (viewingUserID) {
-    // Viewing user details from dashboard (Keeping the mock for your table demo)
+    // Viewing user details from admin dashboard using Supabase data
     displayUserDetails(viewingUserID);
 } else {
     // Viewing LIVE meal analysis result from the AI pipeline
@@ -29,12 +32,14 @@ function displayMealAnalysis() {
     }
 
     // 1. Calculate Totals from the Gemini/USDA schema
-    let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0;
+    let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFiber = 0, totalWater = 0, totalFats = 0;
 
     record.nutrition_data.forEach(item => {
         totalCalories += item.calories_kcal || 0;
         totalProtein += item.protein_g || 0;
         totalCarbs += item.total_carbs_g || 0;
+        totalFiber += item.total_fiber_g || 0;
+        totalWater += item.total_water_ml || 0;
         totalFats += item.total_fat_g || 0;
     });
 
@@ -55,6 +60,8 @@ function displayMealAnalysis() {
     caloriesEl.textContent = `${totalCalories.toFixed(0)} kcal`;
     proteinEl.textContent = `${totalProtein.toFixed(1)} g`;
     carbsEl.textContent = `${totalCarbs.toFixed(1)} g`;
+    fiberEl.textContent = `${totalFiber.toFixed(1)} g`;
+    waterEl.textContent = `${totalWater.toFixed(1)} ml`;
     fatsEl.textContent = `${totalFats.toFixed(1)} g`;
 }
 
@@ -73,30 +80,96 @@ function displayStatus(status) {
 }
 
 // ==========================================
-// MOCK DATA FOR ADMIN DASHBOARD "VIEW" CLICKS
+// SUPABASE DATA FOR ADMIN DASHBOARD "VIEW" CLICKS
 // ==========================================
-function displayUserDetails(userID) {
-    const mockUserData = {
-        'U001': { status: 'healthy', ingredients: [{ item: 'grilled chicken', portion: 1 }, { item: 'mixed salad', portion: 1 }], calories: 650, protein: 45, carbs: 75, fats: 15 },
-        'U002': { status: 'warning', ingredients: [{ item: 'white rice', portion: 2 }, { item: 'fried chicken', portion: 1 }], calories: 890, protein: 35, carbs: 120, fats: 28 },
-        'U003': { status: 'intervention', ingredients: [{ item: 'pasta', portion: 2 }, { item: 'garlic bread', portion: 2 }], calories: 1200, protein: 30, carbs: 180, fats: 35 },
-        'DOC001': { status: 'healthy', ingredients: [{ item: 'salmon', portion: 1 }, { item: 'brown rice', portion: 1 }], calories: 520, protein: 40, carbs: 45, fats: 18 },
-        'PATIENT123': { status: 'warning', ingredients: [{ item: 'burger', portion: 1 }, { item: 'fries', portion: 1 }], calories: 750, protein: 25, carbs: 95, fats: 30 }
-    };
+async function displayUserDetails(userID) {
+    try {
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id, name')
+            .eq('id', userID)
+            .maybeSingle();
 
-    const userData = mockUserData[userID] || mockUserData['U001'];
+        let nutritionRows = [];
+        let nutritionError = null;
 
-    document.querySelector('.page-header h2').textContent = `User Details: ${userID}`;
-    displayStatus(userData.status);
+        // 1) Preferred: table has user_id for per-user filtering.
+        const byUserQuery = await supabase
+            .from('nutritions')
+            .select('*')
+            .eq('user_id', userID)
+            .order('created_at', { ascending: false });
 
-    ingredientList.innerHTML = userData.ingredients.map(item =>
-        `<li><span style="text-transform: capitalize;">${item.item} ×${item.portion}</span></li>`
-    ).join('');
+        if (!byUserQuery.error) {
+            nutritionRows = byUserQuery.data || [];
+        } else {
+            // 2) Fallback: table exists but no user_id column, or select restriction issue.
+            const fallbackQuery = await supabase
+                .from('nutritions')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
 
-    caloriesEl.textContent = `${userData.calories} kcal`;
-    proteinEl.textContent = `${userData.protein} g`;
-    carbsEl.textContent = `${userData.carbs} g`;
-    fatsEl.textContent = `${userData.fats} g`;
+            if (!fallbackQuery.error) {
+                nutritionRows = fallbackQuery.data || [];
+            } else {
+                nutritionError = fallbackQuery.error;
+            }
+        }
+
+        if (userError) throw userError;
+        if (nutritionError) throw nutritionError;
+
+        const displayName = user?.name || userID;
+        document.querySelector('.page-header h2').textContent = `User Name: ${displayName}`;
+
+        if (!nutritionRows || nutritionRows.length === 0) {
+            displayStatus('healthy');
+            ingredientList.innerHTML = '<li>No nutrition records found for this user.</li>';
+            caloriesEl.textContent = '-';
+            proteinEl.textContent = '-';
+            carbsEl.textContent = '-';
+            fiberEl.textContent = '-';
+            waterEl.textContent = '-';
+            fatsEl.textContent = '-';
+            return;
+        }
+
+        const totalCalories = nutritionRows.reduce((sum, row) => sum + Number(row.calories_kcal || 0), 0);
+        const totalProtein = nutritionRows.reduce((sum, row) => sum + Number(row.protein_g || 0), 0);
+        const totalCarbs = nutritionRows.reduce((sum, row) => sum + Number(row.total_carbs_g || 0), 0);
+        const totalFiber = nutritionRows.reduce((sum, row) => sum + Number(row.total_fiber_g || 0), 0);
+        const totalWater = nutritionRows.reduce((sum, row) => sum + Number(row.total_water_ml || 0), 0);
+        const totalFats = nutritionRows.reduce((sum, row) => sum + Number(row.total_fat_g || 0), 0);
+
+        let status = 'healthy';
+        if (totalCarbs > 150) status = 'intervention';
+        else if (totalCarbs > 80) status = 'warning';
+        displayStatus(status);
+
+        ingredientList.innerHTML = nutritionRows.map((row) => {
+            const name = row.food_name || row.item || row.name || 'Meal item';
+            return `<li><span style="text-transform: capitalize;">${name}</span></li>`;
+        }).join('');
+
+        caloriesEl.textContent = `${totalCalories.toFixed(0)} kcal`;
+        proteinEl.textContent = `${totalProtein.toFixed(1)} g`;
+        carbsEl.textContent = `${totalCarbs.toFixed(1)} g`;
+        fiberEl.textContent = `${totalFiber.toFixed(1)} g`;
+        waterEl.textContent = `${totalWater.toFixed(1)} ml`;
+        fatsEl.textContent = `${totalFats.toFixed(1)} g`;
+    } catch (err) {
+        console.error('Unable to load user nutrition details:', err);
+        document.querySelector('.page-header h2').textContent = 'User Name';
+        ingredientList.innerHTML = '<li>Unable to load data from database.</li>';
+        caloriesEl.textContent = '-';
+        proteinEl.textContent = '-';
+        carbsEl.textContent = '-';
+        fiberEl.textContent = '-';
+        waterEl.textContent = '-';
+        fatsEl.textContent = '-';
+        displayStatus('warning');
+    }
 }
 
 // ===== LOGOUT =====
