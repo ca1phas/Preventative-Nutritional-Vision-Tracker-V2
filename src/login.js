@@ -1,28 +1,38 @@
 import './style.css';
+import { supabase } from './supabaseConnect.js';
 
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Demo user credentials (replace with backend auth in production)
-  const VALID_USERS = {
-    U001: 'user123',
-    U002: 'user123',
-    U003: 'user123',
-    DOC001: 'doc123',
-    PATIENT123: 'patient123',
-  };
-
-  const userID = document.getElementById('userID').value.trim();
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
+  const DEFAULT_PASSWORD = 'user123';
 
-  if (
-    VALID_USERS.hasOwnProperty(userID) &&
-    VALID_USERS[userID] === password
-  ) {
-    sessionStorage.setItem('userID', userID);
-    sessionStorage.setItem('isUserAuthenticated', 'true');
-    window.location.href = 'userProfile.html';
-  } else {
-    alert('Invalid user ID or password. Please try again.');
+  if (!username || password !== DEFAULT_PASSWORD) {
+    alert('Invalid username or password. Please try again.');
+    return;
   }
+
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, name')
+    .ilike('name', username)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Login lookup failed:', error);
+    alert('Unable to login right now. Please try again.');
+    return;
+  }
+
+  if (!user) {
+    alert('Invalid username or password. Please try again.');
+    return;
+  }
+
+  sessionStorage.setItem('userID', user.name);
+  sessionStorage.setItem('supabaseUserId', user.id);
+  sessionStorage.setItem('isUserAuthenticated', 'true');
+  window.location.href = 'userProfile.html';
 });

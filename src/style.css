@@ -740,6 +740,14 @@ body {
   padding: 0.95rem;
 }
 
+.history-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  line-height: 1.35;
+}
+
 .history-meta-row {
   display: flex;
   justify-content: space-between;
@@ -763,6 +771,32 @@ body {
   font-size: 0.82rem;
   padding: 0.38rem 0.82rem;
   cursor: default;
+}
+
+.history-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.history-view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  background: #64748b;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.history-view-link:hover {
+  background: #475569;
+  transform: translateY(-1px);
 }
 
 .history-status-btn.status-healthy {
