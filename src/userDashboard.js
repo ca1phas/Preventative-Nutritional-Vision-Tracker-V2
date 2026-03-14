@@ -54,7 +54,6 @@ async function fetchUserNutritionData(userId) {
             .select(`
                 created_at,
                 nutritions (*) 
-                nutritions (*)
             `)
             .eq('user_id', userId);
 
