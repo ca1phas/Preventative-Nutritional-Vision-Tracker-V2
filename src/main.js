@@ -136,24 +136,26 @@ if (mobileMenuToggle && navMenu) {
   });
 }
 
-// let homepage show same header as other pages when user logged in
+// homepage header
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const user = await getCurrentUser();
     console.log('User in DOMContentLoaded:', user);
 
     if (user) {
-      const navMenu = document.getElementById('navMenu');
-      const userControls = document.querySelector('.user-controls');
+      const desktopNavLinks = document.getElementById('desktopNavLinks');
+      const desktopNavActions = document.getElementById('desktopNavActions');
+      const mobileNavLinks = document.getElementById('mobileNavLinks');
+      const mobileNavActions = document.getElementById('mobileNavActions');
 
-      if (navMenu) {
-        navMenu.innerHTML = `
-          <li><a href="userProfile.html">Profile</a></li>
-          <li><a href="userDashboard.html">Dashboard</a></li>
-          <li><a href="history.html">History</a></li>
-          <li><a href="upload.html">Upload Meal</a></li>
-          <li class="user-dropdown" id="homepageDropdown">
-            <a href="#" class="dropdown-toggle" id="homepageDropdownBtn">
+      if (desktopNavLinks) {
+        desktopNavLinks.innerHTML = `
+          <a href="userProfile.html">Profile</a>
+          <a href="userDashboard.html">Dashboard</a>
+          <a href="history.html">History</a>
+          <a href="upload.html">Upload Meal</a>
+          <div class="user-dropdown" style="display: inline-block; position: relative; margin-left: 0.5rem;">
+            <a href="#" class="dropdown-toggle" id="homepageDropdownBtn" style="display: flex; align-items: center; gap: 0.3rem;">
               Homepage <i class="fas fa-chevron-down"></i>
             </a>
             <div class="dropdown-menu" id="homepageDropdownMenu">
@@ -162,12 +164,11 @@ document.addEventListener('DOMContentLoaded', async () => {
               <a href="index.html#features" class="dropdown-item">Features</a>
               <a href="index.html#contact" class="dropdown-item">Contact</a>
             </div>
-          </li>
+          </div>
         `;
 
         const dropdownToggle = document.getElementById('homepageDropdownBtn');
         const dropdownMenu = document.getElementById('homepageDropdownMenu');
-
         if (dropdownToggle && dropdownMenu) {
           dropdownToggle.addEventListener('click', (e) => {
             e.preventDefault();
@@ -175,32 +176,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             dropdownMenu.classList.toggle('show');
           });
         }
+      }
+
+      if (desktopNavActions) {
+        desktopNavActions.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
+      }
+
+      if (mobileNavLinks) {
+        mobileNavLinks.innerHTML = `
+          <a href="userProfile.html">Profile</a>
+          <a href="userDashboard.html">Dashboard</a>
+          <a href="history.html">History</a>
+          <a href="upload.html">Upload Meal</a>
+          <div style="padding: 1rem 1.5rem; color: #9ca3af; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem;">Homepage Links</div>
+          <a href="index.html#about" style="padding-left: 2.5rem; border-bottom: none;"><i class="fas fa-angle-right"></i> About</a>
+          <a href="index.html#solution" style="padding-left: 2.5rem; border-bottom: none;"><i class="fas fa-angle-right"></i> Solution</a>
+          <a href="index.html#features" style="padding-left: 2.5rem; border-bottom: none;"><i class="fas fa-angle-right"></i> Features</a>
+          <a href="index.html#contact" style="padding-left: 2.5rem;"><i class="fas fa-angle-right"></i> Contact</a>
+        `;
 
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        navMenu.querySelectorAll('a').forEach(link => {
+        const sidebar = document.getElementById('mobileSidebar');
+        const overlay = document.getElementById('mobileOverlay');
+        mobileNavLinks.querySelectorAll('a').forEach(link => {
           link.addEventListener('click', () => {
-            navMenu.classList.remove('mobile-open');
-            if (mobileMenuToggle) {
-              const icon = mobileMenuToggle.querySelector('i');
-              if (icon) {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-              }
-            }
+            if(sidebar) sidebar.classList.remove('active');
+            if(overlay) overlay.classList.remove('active');
           });
         });
       }
 
-      if (userControls) {
-        userControls.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
+      if (mobileNavActions) {
+        mobileNavActions.innerHTML = '<button id="logoutBtnMobileNav" class="btn-logout" style="width: 100%;">Logout</button>';
+      }
 
-        const logoutBtn = document.getElementById('logoutBtnNav');
+      const bindLogout = (btnId) => {
+        const logoutBtn = document.getElementById(btnId);
         if (logoutBtn) {
           logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             logoutBtn.disabled = true;
             logoutBtn.textContent = 'Logging out...';
-
             try {
               await logoutUser();
               window.location.replace('index.html');
@@ -211,9 +227,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
           });
         }
-      }
+      };
+      
+      bindLogout('logoutBtnNav');
+      bindLogout('logoutBtnMobileNav');
+
     } else {
-      console.log('User not logged in');
+      console.log('User not logged in - showing default public navbar');
     }
   } catch (err) {
     console.error('Error in DOMContentLoaded:', err);

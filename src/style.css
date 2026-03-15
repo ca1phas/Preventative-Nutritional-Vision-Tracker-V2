@@ -9,6 +9,8 @@
 
 html {
     scroll-behavior: smooth;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -19,6 +21,8 @@ body {
   min-height: 100vh;
   color: #333;
   animation: fadeInPage 0.4s ease-out forwards;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Login Page Styles */
@@ -138,6 +142,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 50px;
 }
 
 .navbar-brand {
@@ -190,9 +195,11 @@ body {
 }
 
 .container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -462,38 +469,6 @@ body {
   width: 180px;
   height: 180px;
   flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .dashboard-controls-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-box-wrap {
-    min-width: 0;
-  }
-
-  .filter-wrap,
-  .sort-wrap {
-    flex: 1;
-  }
-
-  .filter-select,
-  .filter-wrap .filter-select,
-  .sort-wrap .filter-select {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .pie-chart-with-legend {
-    flex-direction: column;
-  }
-
-  .pie-chart-container {
-    width: 200px;
-    height: 200px;
-  }
 }
 
 /* Table Styles */
@@ -1241,533 +1216,6 @@ body.modal-open {
   margin-bottom: 1.5rem;
 }
 
-/* ============================================
-   RESPONSIVE DESIGN - MOBILE & TABLET
-   ============================================ */
-
-/* Tablet Breakpoint (768px - 1024px) */
-@media (max-width: 1024px) {
-  .container,
-  .navbar-container,
-  .main-header .container {
-    padding: 0 1.5rem;
-  }
-
-  .hero-title {
-    font-size: 3rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1.125rem;
-  }
-
-  .hero-buttons {
-    flex-wrap: wrap;
-  }
-
-  .hero-stats {
-    gap: 2rem;
-  }
-
-  .stat-number {
-    font-size: 2.5rem;
-  }
-}
-
-/* Mobile Breakpoint (max-width: 768px) */
-@media (max-width: 768px) {
-  /* Global Adjustments */
-  body {
-    font-size: 14px;
-  }
-
-  .container,
-  .navbar-container,
-  .main-header .container {
-    padding: 0 1rem;
-  }
-
-  /* Login Page - Mobile */
-  .login-card {
-    padding: 2rem 1.5rem;
-    margin: 1rem;
-  }
-
-  .login-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .login-header p {
-    font-size: 0.875rem;
-  }
-
-  /* Dashboard Navigation - Mobile */
-  .navbar-container {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .navbar-brand {
-    flex-direction: column;
-    gap: 0.75rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  .navbar-brand h1 {
-    font-size: 1.25rem;
-  }
-
-  .navbar-links {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .navbar-links a {
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    background: #f3f4f6;
-    border-radius: 20px;
-  }
-
-  .navbar-links a.active {
-    background: #64748b;
-    color: white;
-  }
-
-  .btn-logout {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-
-  /* Homepage Header - Mobile */
-  .main-header {
-    position: relative;
-  }
-
-  .navbar {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .logo {
-    font-size: 1rem;
-    flex: 1;
-  }
-
-  .logo i {
-    font-size: 1.5rem;
-  }
-
-  .mobile-menu-toggle {
-    display: block;
-    order: 2;
-  }
-
-  .nav-menu {
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-    order: 3;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-  }
-
-  .nav-menu.mobile-open {
-    max-height: 500px;
-    margin-top: 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .nav-menu li {
-    width: 100%;
-    text-align: center;
-  }
-
-  .nav-menu a {
-    display: block;
-    padding: 0.875rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .nav-menu li:last-child a {
-    border-bottom: none;
-  }
-
-  .user-controls {
-    order: 4;
-    width: 100%;
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-  }
-
-  .user-icon-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  .user-icon-btn span {
-    display: none;
-  }
-
-  .dropdown-menu {
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    min-width: 200px;
-  }
-
-  .dropdown-menu.show {
-    transform: translateX(-50%) translateY(0);
-  }
-
-  /* Hero Section - Mobile */
-  .hero-section {
-    min-height: auto;
-    padding: 6rem 1rem 4rem;
-    background-attachment: scroll;
-  }
-
-  .hero-badge {
-    font-size: 0.75rem;
-    padding: 0.5rem 1rem;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-    line-height: 1.5;
-    margin-bottom: 2rem;
-  }
-
-  .hero-buttons {
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-
-  .btn-primary-large,
-  .btn-secondary-large,
-  .btn-light-large,
-  .btn-outline-large {
-    width: 100%;
-    justify-content: center;
-    font-size: 1rem;
-    padding: 0.875rem 1.5rem;
-  }
-
-  .hero-stats {
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .stat-number {
-    font-size: 2rem;
-  }
-
-  .hero-stats .stat-label {
-    font-size: 0.875rem;
-  }
-
-  /* Page Headers - Mobile */
-  .page-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .page-header p {
-    font-size: 0.875rem;
-  }
-
-  /* Tables - Mobile */
-  .table-card {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .table {
-    min-width: 600px;
-  }
-
-  .table thead th,
-  .table tbody td {
-    padding: 1rem;
-    font-size: 0.875rem;
-  }
-
-  /* Cards & Forms - Mobile */
-  .upload-card {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-
-  .daily-summary-card {
-    padding: 1rem;
-  }
-
-  /* Button Groups - Mobile */
-  .button-group {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .button-group .btn {
-    width: 100%;
-  }
-
-  /* Grids - Mobile */
-  .nutrition-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .nutrition-card {
-    padding: 1rem;
-  }
-
-  .nutrition-card p:first-child {
-    font-size: 0.75rem;
-  }
-
-  .nutrition-card p:last-child {
-    font-size: 1.5rem;
-  }
-
-  .history-filter-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.55rem;
-  }
-
-  .history-filter-select {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .history-meta-row {
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  /* Ingredient Rows - Mobile */
-  .ingredient-row {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
-  .ingredient-row input {
-    padding: 0.625rem;
-    font-size: 0.875rem;
-  }
-
-  .ingredient-header {
-    display: none;
-  }
-
-  /* Status Banners - Mobile */
-  .status-banner {
-    font-size: 1rem;
-    padding: 1rem;
-  }
-
-  /* Image Preview - Mobile */
-  .image-preview img {
-    max-height: 250px;
-  }
-
-  /* Tabs - Mobile */
-  .tabs {
-    flex-wrap: wrap;
-    gap: 0.375rem;
-  }
-
-  .tab-link {
-    font-size: 0.875rem;
-    padding: 0.5rem 0.875rem;
-  }
-
-  /* Sections - Mobile */
-  .section-light {
-    padding: 3rem 0;
-  }
-
-  /* JSON Preview - Mobile */
-  .json-preview {
-    font-size: 0.75rem;
-    padding: 0.75rem;
-  }
-
-  /* Alerts - Mobile */
-  .alert {
-    padding: 0.875rem 1rem;
-    font-size: 0.875rem;
-  }
-}
-
-/* Small Mobile Breakpoint (max-width: 480px) */
-@media (max-width: 480px) {
-  /* Very Small Screens */
-  .login-card {
-    padding: 1.5rem 1rem;
-  }
-
-  .login-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .hero-title {
-    font-size: 1.75rem;
-  }
-
-  .hero-subtitle {
-    font-size: 0.875rem;
-  }
-
-  .btn-primary-large,
-  .btn-secondary-large,
-  .btn-light-large,
-  .btn-outline-large {
-    font-size: 0.875rem;
-    padding: 0.75rem 1.25rem;
-  }
-
-  .nutrition-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-stats {
-    gap: 1.5rem;
-  }
-
-  .stat-number {
-    font-size: 1.75rem;
-  }
-
-  .navbar-brand h1 {
-    font-size: 1rem;
-  }
-
-  .logo span {
-    font-size: 0.875rem;
-  }
-
-  .upload-card,
-  .daily-summary-card {
-    padding: 1rem;
-  }
-
-  .page-header h2 {
-    font-size: 1.25rem;
-  }
-
-  .table {
-    font-size: 0.75rem;
-  }
-
-  .badge {
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
-  }
-}
-
-/* Landscape Mobile Optimization */
-@media (max-height: 600px) and (orientation: landscape) {
-  .hero-section {
-    min-height: auto;
-    padding: 5rem 1rem 3rem;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero-buttons {
-    margin-bottom: 2rem;
-  }
-
-  .login-container {
-    padding: 1rem;
-  }
-
-  .login-card {
-    padding: 1.5rem;
-  }
-}
-
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-  /* Larger touch targets for mobile */
-  .btn,
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger,
-  .btn-success {
-    min-height: 44px;
-  }
-
-  .navbar-links a,
-  .dropdown-item {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-
-  input,
-  select,
-  textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  .user-icon-btn {
-    min-height: 44px;
-  }
-
-  /* Remove hover effects on touch devices */
-  .btn:hover,
-  .btn-primary:hover,
-  .btn-logout:hover {
-    transform: none;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .navbar,
-  .btn-logout,
-  .hero-buttons,
-  .user-controls {
-    display: none;
-  }
-
-  .hero-section {
-    background: none;
-    color: #000;
-  }
-
-  .table-card {
-    box-shadow: none;
-    border: 1px solid #ddd;
-  }
-}
 
 /* ============================================
    HOMEPAGE SPECIFIC STYLES
@@ -2571,90 +2019,6 @@ body.homepage {
   color: #9ca3af;
 }
 
-/* Responsive Design for Homepage */
-@media (max-width: 1024px) {
-  .solution-content {
-    grid-template-columns: 1fr;
-  }
-
-  .tech-stack-card {
-    position: static;
-  }
-
-  .footer-content {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-menu {
-    display: none;
-  }
-
-  .hero-text-card {
-    padding: 1.35rem 1.2rem;
-    margin: 0 auto 1.8rem;
-    border-radius: 18px;
-  }
-
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1.125rem;
-  }
-
-  .hero-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .btn-primary-large,
-  .btn-secondary-large {
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .hero-stats {
-    gap: 2rem;
-  }
-
-  .stat-number {
-    font-size: 2rem;
-  }
-
-  .section-title {
-    font-size: 2rem;
-  }
-
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-content h2 {
-    font-size: 2rem;
-  }
-
-  .cta-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .btn-light-large,
-  .btn-outline-large {
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .tech-items {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* ============================================
    USER DASHBOARD SPECIFIC STYLES
@@ -3023,26 +2387,6 @@ body.homepage {
   font-size: 0.95rem;
   color: #4b5563;
   line-height: 1.6;
-}
-
-/* Responsive for User Dashboard */
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .page-header h2 {
-    font-size: 1.5rem;
-  }
 }
 
 
@@ -3659,28 +3003,6 @@ table {
     color: #374151;
 }
 
-/* responsive for macro nutrients view more */
-@media (max-width: 1024px) {
-    .macros-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-  .macros-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  #extraMacrosContainer.macros-grid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  }
-
-  .macro-card {
-    padding: 1rem;
-  }
-}
-
-
 /* specific color for macro nutrients */
 /* Calories */
 .macro-value.c-cal,
@@ -3714,3 +3036,15 @@ table {
 
 .icon-sug { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
 .icon-fib { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
+
+
+/* Base Desktop Header Visibility */
+.mobile-menu-toggle, 
+.mobile-sidebar, 
+.mobile-overlay {
+  display: none;
+}
+.desktop-menu {
+  display: flex;
+  align-items: center;
+}

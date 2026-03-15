@@ -100,3 +100,34 @@ export async function isAdmin() {
 
   return profile?.is_admin || false;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('mobileSidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    const closeBtn = document.getElementById('closeSidebarBtn');
+
+    if (menuToggle && sidebar && overlay && closeBtn) {
+        const openMenu = () => {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        };
+
+        const closeMenu = () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        };
+
+        menuToggle.addEventListener('click', openMenu);
+        closeBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+    }
+
+    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    if (logoutBtnMobile) {
+        logoutBtnMobile.addEventListener('click', async (e) => {
+            e.preventDefault();
+            document.getElementById('logoutBtn')?.click(); 
+        });
+    }
+});

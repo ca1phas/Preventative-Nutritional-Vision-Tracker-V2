@@ -6,6 +6,7 @@
     <meta name="view-transition" content="same-origin" />
     <title>Nutrition Dashboard - Nutrition Tracker</title>
     <link rel="stylesheet" href="src/style.css" />
+    <link rel="stylesheet" href="src/responsive.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -15,22 +16,47 @@
   </head>
   <body class="dashboard-body">
     <nav class="navbar">
-      <div class="navbar-container">
-        <div class="navbar-brand">
-          <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
-          <div class="navbar-links">
-            <a href="userProfile.html" id="profileTab">Profile</a>
-            <a href="userDashboard.html" id="dashboardTab" class="active">Dashboard</a>
-            <a href="history.html" id="historyTab">History</a>
-            <a href="upload.html">Upload Meal</a>
-            <a href="index.html">Homepage</a>
-          </div>
-        </div>
-        <div style="margin-left: auto; padding-left: 3rem">
-          <button id="logoutBtn" class="btn-logout">Logout</button>
-        </div>
-      </div>
-    </nav>
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; color: #1f2937;">
+        <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
+      </a>
+    </div>
+
+    <div class="navbar-links desktop-menu">
+      <a href="userProfile.html">Profile</a>
+      <a href="userDashboard.html">Dashboard</a>
+      <a href="history.html">History</a>
+      <a href="upload.html">Upload Meal</a>
+      <a href="index.html">Homepage</a>
+    </div>
+    <div class="navbar-actions desktop-menu" style="margin-left: auto; padding-left: 3rem;">
+      <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-overlay" id="mobileOverlay"></div>
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-header">
+    <h3>Menu</h3>
+    <button id="closeSidebarBtn" class="close-sidebar-btn"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="mobile-sidebar-links">
+    <a href="userProfile.html">Profile</a>
+    <a href="userDashboard.html">Dashboard</a>
+    <a href="history.html">History</a>
+    <a href="upload.html">Upload Meal</a>
+    <a href="index.html">Homepage</a>
+  </div>
+  <div class="mobile-sidebar-footer">
+    <button id="logoutBtnMobile" class="btn-logout">Logout</button>
+  </div>
+</div>
 
     <div
       id="loadingOverlay"
@@ -151,7 +177,7 @@
           <div class="legend-item"><span class="dot alert-dot"></span> Alert</div>
         </div>
 
-        <div style="margin-top: 2rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.8rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="gap: 15px;margin-top: 2rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.8rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
           <h3 class="status-title" id="dynamicPeriodTitle" style="color: var(--text-main); font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0;">
             <i class="fas fa-calendar-week" style="color: var(--accent-blue)"></i> WEEKLY MACRONUTRIENTS (AVG)
           </h3>

@@ -12,57 +12,69 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="src/style.css" />
+    <link rel="stylesheet" href="src/responsive.css" />
     <script type="module" src="/src/main.js"></script>
   </head>
   <body class="homepage">
     <header class="main-header">
-      <div class="container">
         <nav class="navbar">
-          <div class="logo">
-            <i class="fas fa-heartbeat"></i>
-            <span>NUTRITIONAL VISION TRACKER</span>
-          </div>
-          <button
-            class="mobile-menu-toggle"
-            id="mobileMenuToggle"
-            aria-label="Toggle menu"
-          >
-            <i class="fas fa-bars"></i>
-          </button>
-          <ul class="nav-menu" id="navMenu">
-            <li><a href="#home" class="active">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#solution">Solution</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-          <div class="user-controls">
-            <div class="user-dropdown">
-              <button class="user-icon-btn" id="userMenuBtn">
-                <i class="fas fa-user-circle"></i>
-                <span>Account</span>
-                <i class="fas fa-chevron-down"></i>
-              </button>
-              <div class="dropdown-menu" id="userDropdown">
-                <div class="dropdown-header">Select Role</div>
-                <a href="#" class="dropdown-item" id="adminRole">
-                  <i class="fas fa-user-shield"></i>
-                  <span>Admin Portal</span>
-                </a>
-                <a href="#" class="dropdown-item" id="userRole">
-                  <i class="fas fa-user"></i>
-                  <span>User Dashboard</span>
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item" id="loginBtn">
-                  <i class="fas fa-sign-in-alt"></i>
-                  <span>Login</span>
-                </a>
+          <div class="navbar-container">
+            <div class="navbar-brand">
+              <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; color: #1f2937;">
+                <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker</h1>
+              </a>
+            </div>
+
+            <div class="navbar-links desktop-menu" id="desktopNavLinks">
+              <a href="#home" class="active">Home</a>
+              <a href="#about">About</a>
+              <a href="#solution">Solution</a>
+              <a href="#features">Features</a>
+              <a href="#contact">Contact</a>
+            </div>
+
+            <div class="user-controls desktop-menu" id="desktopNavActions" style="margin-left: auto;">
+              <div class="user-dropdown">
+                <button class="user-icon-btn" id="userMenuBtn">
+                  <i class="fas fa-user-circle"></i>
+                  <span>Account</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" id="userDropdown">
+                  <div class="dropdown-header">Select Role</div>
+                  <a href="#" class="dropdown-item" id="adminRole"><i class="fas fa-user-shield"></i> Admin Portal</a>
+                  <a href="#" class="dropdown-item" id="userRole"><i class="fas fa-user"></i> User Dashboard</a>
+                  <div class="dropdown-divider"></div>
+                  <a href="#" class="dropdown-item" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</a>
+                </div>
               </div>
             </div>
+
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+              <i class="fas fa-bars"></i>
+            </button>
           </div>
         </nav>
-      </div>
+
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        <div class="mobile-sidebar" id="mobileSidebar">
+          <div class="mobile-sidebar-header">
+            <h3>Menu</h3>
+            <button id="closeSidebarBtn" class="close-sidebar-btn"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="mobile-sidebar-links" id="mobileNavLinks">
+            <a href="#home" class="active">Home</a>
+            <a href="#about">About</a>
+            <a href="#solution">Solution</a>
+            <a href="#features">Features</a>
+            <a href="#contact">Contact</a>
+          </div>
+          <div class="mobile-sidebar-footer" id="mobileNavActions">
+            <a href="login.html" class="btn btn-primary" style="display: block; text-align: center; width: 100%; text-decoration: none; padding: 10px; border-radius: 8px;">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+          </div>
+        </div>
     </header>
 
     <section class="hero-section" id="home">
