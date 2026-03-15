@@ -52,7 +52,7 @@ async function initOutput() {
     const imgUrl = mealData.image_url;
     if (imgUrl) {
       document.getElementById("mealImageContainer").innerHTML = `
-        <img src="${imgUrl}" alt="Uploaded Meal" style="max-width:100%; max-height: 300px; border-radius:10px; margin-bottom:20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <img src="${imgUrl}" alt="Uploaded Meal" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block; background:#f3f4f6;">
       `;
     }
 

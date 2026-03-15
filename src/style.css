@@ -938,6 +938,9 @@ body {
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   border: 1px solid #edf0f3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .history-card-image-wrap {
@@ -954,6 +957,27 @@ body {
 
 .history-card-content {
   padding: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.history-card-title {
+  margin: 0 0 1.05rem 0;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: #1f2937;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.history-card-title-rice-gap {
+  margin-bottom: 4rem;
 }
 
 .history-meta-row {
@@ -979,6 +1003,26 @@ body {
   font-size: 0.82rem;
   padding: 0.38rem 0.82rem;
   cursor: default;
+  min-width: 88px;
+  text-align: center;
+}
+
+.history-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6.5rem;
+  margin-top: auto;
+  padding-top: 0.2rem;
+}
+
+.history-view-link {
+  color: #1f2937;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.history-view-link:hover {
+  text-decoration: underline;
 }
 
 .history-status-btn.status-healthy {
@@ -2993,6 +3037,14 @@ body.homepage {
   box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
 
+.output-analysis-header {
+  display: block;
+}
+
+.output-analysis-header h2 {
+  white-space: nowrap;
+}
+
 h1 {
   margin-top: 0;
   color: #1f2937;
@@ -3061,17 +3113,32 @@ table {
 
 
 .meal-image {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+  width: min(100%, 640px);
+  aspect-ratio: 16 / 10;
+  margin: 0 auto 1.5rem;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.output-back-btn {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border: 2px solid #6b7280 !important;
+}
+
+.output-back-btn:hover {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  transform: translateY(-2px);
 }
 
 .meal-image img {
-    max-width: 420px;
     width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    object-fit: cover;
+    height: 100%;
+  object-fit: cover;
+    object-position: center;
 }
 
 /* Admin Dashboard */

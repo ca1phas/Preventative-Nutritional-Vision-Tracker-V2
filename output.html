@@ -34,8 +34,8 @@
       <div class="page-header">
         <h2>Output</h2>
       </div>
-      <div class="page-header">
-        <h2>AI Nutrition Analysis Result</h2>
+      <div class="page-header" style="display: block;">
+        <h2 style="white-space: nowrap;">AI Nutrition Analysis Result</h2>
         <p style="color: #6b7280; margin-top: 0.5rem">
           View the detailed nutrition analysis for the submitted meal
         </p>
@@ -75,19 +75,19 @@
           "
         ></div>
 
-        <div style="margin-top: 2rem; text-align: center">
+        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
           <a
             href="upload.html"
             class="btn btn-primary"
-            style="text-decoration: none"
+            style="text-decoration: none; width: auto; min-width: 180px; display: inline-flex; justify-content: center; align-items: center; text-align: center;"
             >Log Another Meal</a
           >
           <button
-            class="btn btn-secondary"
+            class="btn btn-secondary output-back-btn"
             onclick="history.back()"
-            style="margin-left: 1rem"
+            style="width: auto; min-width: 180px; margin-left: 0;"
           >
-            Back
+            Back <i class="fas fa-rotate-left" style="margin-left: 0.5rem"></i>
           </button>
         </div>
       </div>

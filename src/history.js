@@ -167,6 +167,8 @@ function buildMealCard(meal) {
   const dateValue = new Date(meal.created_at);
   const foodNames = meal.foodItems.map((item) => item.food_name).filter(Boolean);
   const foodNameText = foodNames.length > 0 ? foodNames.join(', ') : 'Unnamed meal';
+  const isRiceCard = /\brice\b/i.test(foodNameText) && /\blong-grain\b/i.test(foodNameText);
+  const titleClassName = isRiceCard ? 'history-card-title history-card-title-rice-gap' : 'history-card-title';
 
   // Point to output/details view with specific ID
   const outputUrl = `output.html?mealId=${encodeURIComponent(meal.id)}`;
@@ -176,7 +178,7 @@ function buildMealCard(meal) {
       <img src="${escapeAttribute(meal.image_url || DEFAULT_MEAL_IMAGE)}" alt="Meal image" class="history-card-image" />
     </div>
     <div class="history-card-content">
-      <h4 class="history-card-title">${escapeHtml(foodNameText)}</h4>
+      <h4 class="${titleClassName}">${escapeHtml(foodNameText)}</h4>
       <div class="history-meta-row">
         <span class="history-meta-item"><i class="fas fa-calendar-alt"></i> ${formatCardDate(dateValue)}</span>
         <span class="history-meta-item"><i class="fas fa-clock"></i> ${formatCardTime(dateValue)}</span>
