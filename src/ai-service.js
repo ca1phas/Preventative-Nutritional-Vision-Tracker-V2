@@ -52,7 +52,10 @@ export async function analyzeFoodImage(imageBase64, mimeType = "image/jpeg") {
 
 export async function searchUSDA(foodName) {
     const usdaApiKey = import.meta.env.VITE_USDA_API_KEY;
-    let searchTerms = foodName.split(' ');
+
+    // 1. Sanitize the input: Remove punctuation (%, /, ,, -) and leave only alphanumeric characters and spaces
+    const sanitizedName = foodName.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    let searchTerms = sanitizedName.split(' ');
 
     while (searchTerms.length > 0) {
         const query = searchTerms.join(' ');
@@ -60,6 +63,14 @@ export async function searchUSDA(foodName) {
 
         try {
             const response = await fetch(url);
+
+            // 2. Check if the response is actually OK before attempting to parse JSON
+            if (!response.ok) {
+                console.warn(`USDA API returned ${response.status} for query "${query}". Trying broader search...`);
+                searchTerms.pop();
+                continue; // Skip the JSON parsing and move to the next iteration
+            }
+
             const data = await response.json();
             if (data.foods && data.foods.length > 0) return data.foods;
         } catch (error) {
