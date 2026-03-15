@@ -27,7 +27,7 @@ export async function analyzeFoodImage(imageBase64, mimeType = "image/jpeg") {
     const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash-lite',
         contents: [
             { inlineData: { data: cleanBase64, mimeType: mimeType } },
             "Analyze this food image."
@@ -85,7 +85,7 @@ export async function mapToNutritionSchema(foodItem, usdaResults) {
     const hydratedPrompt = getMapPrompt(foodItem, usdaResults);
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite-preview', // Or gemini-2.5-flash
+        model: 'gemini-2.5-flash-lite',
         contents: hydratedPrompt,
         config: {
             systemInstruction: mapSystemInstruction,
@@ -361,32 +361,32 @@ export async function generateUserAssessment(userProfile, rawMeals) {
 // 4. COMPLEX DASHBOARD INSIGHTS (Powered by Gemini)
 // ==========================================
 
-// export async function generateDashboardInsights(userProfile, meals) {
-//     const prompt = `
-//     --- PATIENT PROFILE ---
-//     ${JSON.stringify(userProfile, null, 2)}
+export async function generateDashboardInsights(userProfile, meals) {
+    const prompt = `
+    --- PATIENT PROFILE ---
+    ${JSON.stringify(userProfile, null, 2)}
 
-//     --- RAW PATIENT 14-DAY MEAL HISTORY ---
-//     ${JSON.stringify(meals, null, 2)}
-//     `;
+    --- RAW PATIENT 14-DAY MEAL HISTORY ---
+    ${JSON.stringify(meals, null, 2)}
+    `;
 
-//     try {
-//         // We use Gemini here because it effortlessly handles large JSON context windows
-//         // and strictly enforces the deeply nested insight schema.
-//         const response = await ai.models.generateContent({
-//             model: 'gemini-2.5-flash',
-//             contents: prompt,
-//             config: {
-//                 systemInstruction: dashboardInsightsSystemInstruction,
-//                 responseMimeType: "application/json",
-//                 responseSchema: dashboardInsightsSchema,
-//                 temperature: 0.2
-//             }
-//         });
+    try {
+        // We use Gemini here because it effortlessly handles large JSON context windows
+        // and strictly enforces the deeply nested insight schema.
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+            config: {
+                systemInstruction: dashboardInsightsSystemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: dashboardInsightsSchema,
+                temperature: 0.2
+            }
+        });
 
-//         return JSON.parse(response.text);
-//     } catch (error) {
-//         console.error("Error generating Dashboard Insights:", error);
-//         throw error;
-//     }
-// }
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error generating Dashboard Insights:", error);
+        throw error;
+    }
+}
