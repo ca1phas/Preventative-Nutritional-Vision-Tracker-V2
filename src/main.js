@@ -145,78 +145,71 @@ document.addEventListener('DOMContentLoaded', async () => {
       const navMenu = document.getElementById('navMenu');
       const userControls = document.querySelector('.user-controls');
 
-      console.log('navMenu exists:', !!navMenu);
-      console.log('userControls exists:', !!userControls);
-
       if (navMenu) {
         navMenu.innerHTML = `
           <li><a href="userProfile.html">Profile</a></li>
           <li><a href="userDashboard.html">Dashboard</a></li>
           <li><a href="history.html">History</a></li>
           <li><a href="upload.html">Upload Meal</a></li>
-          <li class="user-dropdown" id="homepageDropdown" style="position: relative;">
-            <a href="#" class="dropdown-toggle" style="cursor: pointer;">
+          <li class="user-dropdown" id="homepageDropdown">
+            <a href="#" class="dropdown-toggle" id="homepageDropdownBtn">
               Homepage <i class="fas fa-chevron-down"></i>
             </a>
-            <div class="dropdown-menu" style="position: absolute; top: 100%; left: 0; display: none; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;">
-              <a href="index.html#about" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">About</a>
-              <a href="index.html#solution" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">Solution</a>
-              <a href="index.html#features" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #eee;">Features</a>
-              <a href="index.html#contact" class="dropdown-item" style="display: block; padding: 10px 15px; text-decoration: none; color: #333;">Contact</a>
+            <div class="dropdown-menu" id="homepageDropdownMenu">
+              <a href="index.html#about" class="dropdown-item">About</a>
+              <a href="index.html#solution" class="dropdown-item">Solution</a>
+              <a href="index.html#features" class="dropdown-item">Features</a>
+              <a href="index.html#contact" class="dropdown-item">Contact</a>
             </div>
           </li>
         `;
 
-        // Setup dropdown - delay to ensure DOM is ready
-        setTimeout(() => {
-          const dropdownToggle = navMenu.querySelector('.dropdown-toggle');
-          const dropdownMenu = navMenu.querySelector('.dropdown-menu');
+        const dropdownToggle = document.getElementById('homepageDropdownBtn');
+        const dropdownMenu = document.getElementById('homepageDropdownMenu');
 
-          console.log('dropdownToggle exists:', !!dropdownToggle);
-          console.log('dropdownMenu exists:', !!dropdownMenu);
+        if (dropdownToggle && dropdownMenu) {
+          dropdownToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+          });
+        }
 
-          if (dropdownToggle && dropdownMenu) {
-            dropdownToggle.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('Dropdown clicked');
-              const isVisible = dropdownMenu.style.display === 'block';
-              dropdownMenu.style.display = isVisible ? 'none' : 'block';
-              console.log('Dropdown now:', dropdownMenu.style.display);
-            });
-
-            // Close when clicking outside
-            document.addEventListener('click', (e) => {
-              if (!document.getElementById('homepageDropdown')?.contains(e.target)) {
-                dropdownMenu.style.display = 'none';
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        navMenu.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => {
+            navMenu.classList.remove('mobile-open');
+            if (mobileMenuToggle) {
+              const icon = mobileMenuToggle.querySelector('i');
+              if (icon) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
               }
-            });
-          }
-        }, 100);
+            }
+          });
+        });
       }
 
       if (userControls) {
         userControls.innerHTML = '<button id="logoutBtnNav" class="btn-logout">Logout</button>';
 
-        setTimeout(() => {
-          const logoutBtn = document.getElementById('logoutBtnNav');
-          if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-              e.preventDefault();
-              logoutBtn.disabled = true;
-              logoutBtn.textContent = 'Logging out...';
+        const logoutBtn = document.getElementById('logoutBtnNav');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            logoutBtn.disabled = true;
+            logoutBtn.textContent = 'Logging out...';
 
-              try {
-                await logoutUser();
-                window.location.replace('index.html');
-              } catch (err) {
-                console.error('Logout error:', err);
-                logoutBtn.disabled = false;
-                logoutBtn.textContent = 'Logout';
-              }
-            });
-          }
-        }, 100);
+            try {
+              await logoutUser();
+              window.location.replace('index.html');
+            } catch (err) {
+              console.error('Logout error:', err);
+              logoutBtn.disabled = false;
+              logoutBtn.textContent = 'Logout';
+            }
+          });
+        }
       }
     } else {
       console.log('User not logged in');
