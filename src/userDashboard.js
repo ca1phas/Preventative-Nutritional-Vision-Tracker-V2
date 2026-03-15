@@ -125,11 +125,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             const adminStatus = await isAdmin();
             if (adminStatus) {
                 state.targetUserId = requestedUserId;
-                // Add a handy back button for admins
-                const titleEl = document.querySelector('.page-header h2');
-                if (titleEl) {
-                    titleEl.innerHTML = '<a href="dashboard.html" style="font-size: 0.6em; color: #6b7280; text-decoration: none; display:block; margin-bottom: 5px;"><i class="fas fa-arrow-left"></i> Back to Admin Portal</a> <i class="fas fa-chart-line"></i> Patient Dashboard';
+
+                const navbarBrand = document.querySelector('.navbar-brand');
+                if (navbarBrand) {
+                    navbarBrand.innerHTML = `
+                        <h1><i class="fas fa-heartbeat"></i> Nutrition Tracker - Admin Portal</h1>
+                        <div class="navbar-links"></div>
+                    `;
                 }
+            
+                // Hide the patient-facing subtitle
+                const subtitleEl = document.querySelector('.page-header > p:first-of-type');
+                if (subtitleEl) subtitleEl.style.display = 'none';
+            
+                // Restructure the header into a flex row
+                const pageHeader = document.querySelector('.page-header');
+                if (pageHeader) {
+                    pageHeader.style.cssText = 'display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;';
+                }
+            
+                // Move h2 content — replace the icon+title with just the icon+title (no back button here)
+                const h2El = document.querySelector('.page-header h2');
+                if (h2El) h2El.style.display = 'none';
+            
+                // Inject "Viewing Patient Profile" on the LEFT and "Back to Admin Portal" on the RIGHT
+                const adminBar = document.createElement('div');
+                adminBar.id = 'adminHeaderBar';
+                adminBar.style.cssText = 'width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem;';
+                
+                adminBar.innerHTML = `
+                    <a href="dashboard.html" style="font-size: 0.9rem; color: #6b7280; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                        <i class="fas fa-arrow-left"></i> Back to Admin Portal
+                    </a>
+                `;
+                pageHeader.appendChild(adminBar);
             } else {
                 // If a normal user tries to snoop another ID, default them back to their own
                 state.targetUserId = loggedInUserId;
@@ -150,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (profile && state.targetUserId !== loggedInUserId) {
             const displayEl = document.getElementById('currentUserDisplay');
             if (displayEl) {
-                displayEl.innerHTML = `<i class="fas fa-user-md"></i> Viewing Patient Profile: <strong>${profile.name || 'Unknown Patient'}</strong>`;
+                displayEl.innerHTML = `<i class="fas fa-user-md" style="color: black;"></i><span style="color:black;"> Viewing Patient Profile: </span> <strong style="color:black;">${profile.name || 'Unknown Patient'}</strong>`;
                 displayEl.style.color = "#ef4444"; // Red to clearly indicate admin view
             }
         }
