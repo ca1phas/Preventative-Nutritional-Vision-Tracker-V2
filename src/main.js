@@ -31,12 +31,13 @@ document.getElementById('userRole')?.addEventListener('click', async (e) => {
 async function requireLogin(e) {
   e.preventDefault();
   const user = await getCurrentUser();
+  const triggerId = e.currentTarget?.id;
 
   if (!user) {
     window.location.href = 'login.html';
   } else {
     // User is logged in, proceed
-    const destination = e.target.id === 'getStartedBtn' ? 'userProfile.html' : 'userDashboard.html';
+    const destination = triggerId === 'getStartedBtn' ? 'userProfile.html' : 'upload.html';
     window.location.href = destination;
   }
 }
