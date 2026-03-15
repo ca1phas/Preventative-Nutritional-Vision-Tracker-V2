@@ -242,7 +242,7 @@ export async function generateUserAssessment(userProfile, rawMeals) {
 }
 
 // ==========================================
-// 4. COMPLEX DASHBOARD INSIGHTS (Powered by Gemini)
+// 4. COMPLEX DASHBOARD INSIGHTS (Powered by Flextoken Qwen 2.5)
 // ==========================================
 
 export async function generateDashboardInsights(userProfile, meals) {
@@ -254,23 +254,90 @@ export async function generateDashboardInsights(userProfile, meals) {
     ${JSON.stringify(meals, null, 2)}
     `;
 
+    const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+    };
+
+    const systemPrompt = `
+    ${dashboardInsightsSystemInstruction}
+    IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting like \`\`\`json.
+    ${JSON.stringify(dashboardInsightsSchema)}
+    `;
+
+    const data = {
+        model: "qwen2.5",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt }
+        ],
+        max_completion_tokens: 2000, // Increased to handle deeply nested schemas
+        temperature: 0.2, // Kept at 0.2 to match your original configuration
+        top_p: 0.9,
+    };
+
     try {
-        // We use Gemini here because it effortlessly handles large JSON context windows 
-        // and strictly enforces the deeply nested insight schema.
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: {
-                systemInstruction: dashboardInsightsSystemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: dashboardInsightsSchema,
-                temperature: 0.2
-            }
+        const response = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(data)
         });
 
-        return JSON.parse(response.text);
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        let content = responseData.choices[0].message.content;
+
+        // --- ROBUST JSON EXTRACTION ---
+        // Strip away any conversational filler or markdown that Qwen might occasionally append
+        const jsonStart = content.indexOf('{');
+        const jsonEnd = content.lastIndexOf('}');
+
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            content = content.substring(jsonStart, jsonEnd + 1);
+        }
+
+        return JSON.parse(content);
     } catch (error) {
         console.error("Error generating Dashboard Insights:", error);
         throw error;
     }
 }
+
+// ==========================================
+// 4. COMPLEX DASHBOARD INSIGHTS (Powered by Gemini)
+// ==========================================
+
+// export async function generateDashboardInsights(userProfile, meals) {
+//     const prompt = `
+//     --- PATIENT PROFILE ---
+//     ${JSON.stringify(userProfile, null, 2)}
+
+//     --- RAW PATIENT 14-DAY MEAL HISTORY ---
+//     ${JSON.stringify(meals, null, 2)}
+//     `;
+
+//     try {
+//         // We use Gemini here because it effortlessly handles large JSON context windows
+//         // and strictly enforces the deeply nested insight schema.
+//         const response = await ai.models.generateContent({
+//             model: 'gemini-2.5-flash',
+//             contents: prompt,
+//             config: {
+//                 systemInstruction: dashboardInsightsSystemInstruction,
+//                 responseMimeType: "application/json",
+//                 responseSchema: dashboardInsightsSchema,
+//                 temperature: 0.2
+//             }
+//         });
+
+//         return JSON.parse(response.text);
+//     } catch (error) {
+//         console.error("Error generating Dashboard Insights:", error);
+//         throw error;
+//     }
+// }
