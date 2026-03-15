@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 adminBar.style.cssText = 'width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem;';
                 
                 adminBar.innerHTML = `
-                    <a href="dashboard.html" style="font-size: 0.9rem; color: #6b7280; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <a href="dashboard.html" class="admin-portal-back-link">
                         <i class="fas fa-arrow-left"></i> Back to Admin Portal
                     </a>
                 `;

@@ -319,9 +319,9 @@ body {
 }
 
 .reset-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
+  background: transparent;
+  color: #6b7280;
+  border: 2px solid #6b7280;
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -329,20 +329,40 @@ body {
 }
 
 .reset-btn:hover {
-  background: #dc2626;
+  background: transparent;
+  color: #6b7280;
+  border-color: #6b7280;
 }
 
 .dashboard-controls-bottom {
   display: flex;
-  gap: 1rem;
+  gap: 3rem;
   margin-top: 10px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
+.dashboard-controls-bottom .filter-wrap,
 .sort-wrap {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+}
+
+.dashboard-controls-bottom .filter-wrap {
+  margin-bottom: 0;
+}
+
+.dashboard-controls-bottom .filter-label {
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.dashboard-controls-bottom .filter-select {
+  margin: 0;
 }
 
 .search-icon {
@@ -494,7 +514,7 @@ body {
 }
 
 .table thead th {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   text-align: left;
   font-weight: 600;
   color: white;
@@ -3378,6 +3398,71 @@ table {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 15px;
 }
+
+.user-dashboard-header {
+  display: block;
+}
+
+.history-page-header {
+  display: block;
+}
+
+.user-profile-header {
+  display: block;
+}
+
+.admin-dashboard-header {
+  display: block;
+}
+
+.user-dashboard-header h2,
+.user-dashboard-header p,
+.history-page-header h2,
+.history-page-header p,
+.user-profile-header h2,
+.admin-dashboard-header h2,
+.admin-dashboard-header p {
+  display: block;
+}
+
+.user-dashboard-header p,
+.history-page-header p,
+.admin-dashboard-header p {
+  margin-left: 0;
+}
+
+.user-profile-header .profile-subtitle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.user-profile-header .profile-subtitle p {
+  margin-left: 0;
+}
+
+.admin-portal-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-portal-back-link:hover {
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+  color: #4b5563;
+}
+
 .back-btn {
   background: #f3f4f6;
   border: 1px solid var(--border-color);
