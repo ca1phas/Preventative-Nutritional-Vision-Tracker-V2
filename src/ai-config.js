@@ -220,7 +220,7 @@ Evaluate based STRICTLY on these Status Codes:
 1 (Warning): Approaching daily limits (e.g., this single meal consumes >60% of daily calories/carbs) OR severely under-eating (> 500 cal below appropriate daily pace).
 2 (Alert): Dangerous intake requiring intervention (e.g., a single meal exceeding the strict daily max sugar limit, or highly unbalanced intake actively triggering a noted medical condition).
 
-Output a short, plain-text assessment and the exact meal status code.
+Output a comprehensive, around 100 words, plain-text assessment and the exact meal status code.
 `;
 
 export const userAssessmentSystemInstruction = `
@@ -232,7 +232,7 @@ Evaluate based STRICTLY on these Status Codes:
 1 (Warning): Trend shows consistent minor imbalances (> 500 cal deficit daily, or consistently nearing sugar/sodium max limits).
 2 (Alert): Dangerous consistent intake (e.g., routinely > 200 cal over daily target, chronically exceeding max sugar/sodium caps, ignoring medical profile constraints).
 
-Output a short, plain-text assessment and the overall user status code.
+Output a comprehensive, around 50 words, plain-text assessment and the overall user status code.
 `;
 
 export const dashboardInsightsSystemInstruction = `
@@ -251,26 +251,26 @@ IMPORTANT: You must return the response strictly as a JSON object matching the p
 export const dashboardInsightsSchema = {
     "type": "object",
     "properties": {
-        "user_assessment_text": { "type": "string", "description": "Overall summary of the 14-day trend." },
+        "user_assessment_text": { "type": "string", "description": "Overall summary of the 14-day trend. At least 70 words" },
         "user_status": { "type": "integer", "description": "0 (Healthy), 1 (Warning), 2 (Alert)" },
         "insight_good": {
             "type": "object", "nullable": true,
-            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string", "description": "At least 50 words" } },
             "required": ["heading", "description"]
         },
         "insight_improve": {
             "type": "object", "nullable": true,
-            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string", "description": "At least 50 words" } },
             "required": ["heading", "description"]
         },
         "insight_pattern": {
             "type": "object", "nullable": true,
-            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string", "description": "At least 50 words" } },
             "required": ["heading", "description"]
         },
         "insight_risk": {
             "type": "object", "nullable": true,
-            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string" } },
+            "properties": { "heading": { "type": "string", "description": "Max 5 words" }, "description": { "type": "string", "description": "At least 50 words" } },
             "required": ["heading", "description"]
         }
     },
