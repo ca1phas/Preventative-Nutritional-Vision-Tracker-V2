@@ -9,6 +9,7 @@ const tableBody = document.getElementById('userTableBody');
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const sortSelect = document.getElementById('sortSelect');
+const resetButton = document.getElementById('resetButton');
 
 // Define missing variables for the pie chart
 let statusPieChart = null;
@@ -16,20 +17,20 @@ let statusPieChart = null;
 // Define missing status mappings
 const STATUS_TO_LABEL = {
     0: 'Healthy',
-    1: 'Alert',
-    2: 'Intervention'
+    1: 'Warning',
+    2: 'Alert'
 };
 
 const LABEL_TO_STATUS = {
     'Healthy': 0,
-    'Alert': 1,
-    'Intervention': 2
+    'Warning': 1,
+    'Alert': 2
 };
 
 const STATUS_COLORS = {
     'Healthy': '#10b981',     // Green
-    'Alert': '#f59e0b',       // Yellow/Orange
-    'Intervention': '#ef4444' // Red
+    'Warning': '#f59e0b',     // Yellow/Orange
+    'Alert': '#ef4444'        // Red
 };
 
 // Add missing event listeners so the filters actually trigger the refresh
@@ -37,11 +38,21 @@ if (searchInput) searchInput.addEventListener('input', refresh);
 if (statusFilter) statusFilter.addEventListener('change', refresh);
 if (sortSelect) sortSelect.addEventListener('change', refresh);
 
+// reset button
+if (resetButton) {
+    resetButton.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (sortSelect) sortSelect.value = 'az';
+
+        refresh();
+    });
+}
 
 function getStatusBadge(status) {
     if (status === 0) return '<span class="badge badge-healthy">🟢 Healthy</span>';
     if (status === 1) return '<span class="badge badge-warning">🟡 Warning</span>';
-    if (status === 2) return '<span class="badge badge-intervention">🔴 Intervention</span>';
+    if (status === 2) return '<span class="badge badge-intervention">🔴 Alert</span>';
     return '<span class="badge">Unknown</span>';
 }
 
@@ -77,8 +88,8 @@ async function fetchPatients() {
 }
 
 // Apply search, filter, and sort to get displayed list
-function getFilteredAndSortedPatients() {
-    let list = fetchPatients()
+async function getFilteredAndSortedPatients() {
+    let list = await fetchPatients()
 
     // Search by name
     const search = (searchInput?.value || '').trim().toLowerCase();
@@ -86,7 +97,7 @@ function getFilteredAndSortedPatients() {
         list = list.filter(p => (p.name || '').toLowerCase().includes(search));
     }
 
-    // Filter by status label (Healthy, Alert, Intervention)
+    // Filter by status label (Healthy, Warning, Alert)
     const filterLabel = statusFilter?.value ?? '';
     if (filterLabel) {
         const statusInt = LABEL_TO_STATUS[filterLabel];
@@ -108,7 +119,7 @@ function getFilteredAndSortedPatients() {
 
 // Build status distribution for pie chart from filtered patients
 function getStatusDistribution(patients) {
-    const dist = { Healthy: 0, Alert: 0, Intervention: 0 };
+    const dist = { Healthy: 0, Warning: 0, Alert: 0 };
     for (const p of patients) {
         const label = getStatusLabel(p.status);
         if (label && dist[label] !== undefined) dist[label]++;
@@ -131,8 +142,8 @@ function renderTable(patients) {
             <tr>
                 <td>${escapeHtml(user.name || user.id)}</td>
                 <td>${relativeTime(user.updated_at)}</td>
-                <td>${users.age ?? '-'}</td>
-                <td>BMI: ${bmi}</td>
+                <td>${user.age ?? '-'}</td>
+                <td>${bmi}</td>
                 <td>${getStatusBadge(user.status)}</td>
                 <td>
                     <a href="userDashboard.html?userId=${escapeHtml(user.id)}" class="btn-view">View</a>
@@ -158,7 +169,7 @@ function updatePieChart(patients) {
     const labels = [];
     const data = [];
     const colors = [];
-    const statusOrder = ['Healthy', 'Alert', 'Intervention'];
+    const statusOrder = ['Healthy', 'Warning', 'Alert'];
 
     for (const label of statusOrder) {
         const count = dist[label] || 0;
@@ -239,65 +250,14 @@ function updatePieChart(patients) {
 }
 
 // Refresh table and pie chart from current filters
-function refresh() {
-    const filtered = getFilteredAndSortedPatients();
-    renderTable(filtered);
-    updatePieChart(filtered);
-}
-
-async function loadDashboard() {
-    loading.classList.remove('hidden');
-    error.classList.add('hidden');
-
+async function refresh() {
     try {
-        // Get most recent meal per user
-        const { data: meals, error: mealsError } = await supabase
-            .from('meals')
-            .select(`
-                id,
-                user_id,
-                status,
-                created_at,
-                nutritions (
-                    calories_kcal,
-                    total_carbs_g
-                )
-            `)
-            .order('created_at', { ascending: false });
-
-        if (mealsError) throw mealsError;
-
-        // Keep only latest meal per user
-        const userMap = {};
-        meals.forEach(meal => {
-            if (!userMap[meal.user_id]) userMap[meal.user_id] = meal;
-        });
-
-        const latestMeals = Object.values(userMap);
-
-        if (latestMeals.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;">No patients found.</td></tr>';
-            return;
-        }
-
-        tableBody.innerHTML = latestMeals.map(meal => {
-            const n = meal.nutritions || {};
-            const calories = Math.round(n.calories_kcal || 0);
-            const carbs = Math.round(n.total_carbs_g || 0);
-            const lastMeal = new Date(meal.created_at).toLocaleString();
-
-            return `
-                <tr>
-                    <td>${meal.user_id}</td>
-                    <td>${lastMeal}</td>
-                    <td>${calories}</td>
-                    <td>${carbs}g</td>
-                    <td>${getStatusBadge(meal.status)}</td>
-                    <td><a href="result.html?userID=${encodeURIComponent(meal.user_id)}" class="btn-view">View</a></td>
-                </tr>
-            `;
-        }).join('');
-
+        loading.classList.remove('hidden');
+        error.classList.add('hidden');
+        
+        const filtered = await getFilteredAndSortedPatients();
+        renderTable(filtered);
+        updatePieChart(filtered);
     } catch (err) {
         error.textContent = 'Unable to load data: ' + err.message;
         error.classList.remove('hidden');
@@ -305,6 +265,10 @@ async function loadDashboard() {
     } finally {
         loading.classList.add('hidden');
     }
+}
+
+async function loadDashboard() {
+    await refresh();
 }
 
 loadDashboard();
