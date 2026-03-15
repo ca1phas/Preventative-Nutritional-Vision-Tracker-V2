@@ -201,6 +201,58 @@ export async function generateMealAssessment(userProfile, rawCurrentMeal) {
     }
 }
 
+// export async function generateUserAssessment(userProfile, rawMeals) {
+//     try {
+//         // Multi-Agent Workflow: Generate the plan first
+//         const clinicalRubric = await generateClinicalRubric(userProfile);
+
+//         const prompt = `
+//         --- CLINICAL EVALUATION RUBRIC ---
+//         ${JSON.stringify(clinicalRubric, null, 2)}
+
+//         --- RAW PATIENT 14-DAY MEAL HISTORY ---
+//         ${JSON.stringify(rawMeals, null, 2)}
+
+//         Using the rules and critical nutrients identified in the Rubric, evaluate this 14-day trend and calculate the user status code.
+//         `;
+
+//         const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+//         const headers = {
+//             "Content-Type": "application/json",
+//             "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+//         };
+
+//         const systemPrompt = `
+//         ${userAssessmentSystemInstruction}
+//         IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting.
+//         ${JSON.stringify(userAssessmentSchema)}
+//         `;
+
+//         const data = {
+//             model: "qwen2.5",
+//             messages: [
+//                 { role: "system", content: systemPrompt },
+//                 { role: "user", content: prompt }
+//             ],
+//             max_completion_tokens: 1000,
+//             temperature: 0.1,
+//             top_p: 0.9,
+//         };
+
+//         const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(data) });
+//         if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+
+//         const responseData = await response.json();
+//         const content = responseData.choices[0].message.content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+//         return JSON.parse(content);
+
+//     } catch (error) {
+//         console.error("Error generating User Assessment:", error);
+//         throw error;
+//     }
+// }
+
+// ---- Gemini version
 export async function generateUserAssessment(userProfile, rawMeals) {
     try {
         // Multi-Agent Workflow: Generate the plan first
@@ -216,35 +268,21 @@ export async function generateUserAssessment(userProfile, rawMeals) {
         Using the rules and critical nutrients identified in the Rubric, evaluate this 14-day trend and calculate the user status code.
         `;
 
-        const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
-        const headers = {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
-        };
+        // Using Gemini 2.5 Flash-Lite as it is the most budget-friendly model
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+            config: {
+                systemInstruction: userAssessmentSystemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: userAssessmentSchema,
+                temperature: 0.1,
+                topP: 0.9
+            }
+        });
 
-        const systemPrompt = `
-        ${userAssessmentSystemInstruction}
-        IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting.
-        ${JSON.stringify(userAssessmentSchema)}
-        `;
-
-        const data = {
-            model: "qwen2.5",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: prompt }
-            ],
-            max_completion_tokens: 1000,
-            temperature: 0.1,
-            top_p: 0.9,
-        };
-
-        const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(data) });
-        if (!response.ok) throw new Error(`API request failed: ${response.status}`);
-
-        const responseData = await response.json();
-        const content = responseData.choices[0].message.content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        return JSON.parse(content);
+        // Gemini with responseMimeType strictly outputs JSON, so we can parse directly
+        return JSON.parse(response.text);
 
     } catch (error) {
         console.error("Error generating User Assessment:", error);
@@ -256,68 +294,68 @@ export async function generateUserAssessment(userProfile, rawMeals) {
 // 4. COMPLEX DASHBOARD INSIGHTS (Powered by Flextoken Qwen 2.5)
 // ==========================================
 
-export async function generateDashboardInsights(userProfile, meals) {
-    const prompt = `
-    --- PATIENT PROFILE ---
-    ${JSON.stringify(userProfile, null, 2)}
+// export async function generateDashboardInsights(userProfile, meals) {
+//     const prompt = `
+//     --- PATIENT PROFILE ---
+//     ${JSON.stringify(userProfile, null, 2)}
 
-    --- RAW PATIENT 14-DAY MEAL HISTORY ---
-    ${JSON.stringify(meals, null, 2)}
-    `;
+//     --- RAW PATIENT 14-DAY MEAL HISTORY ---
+//     ${JSON.stringify(meals, null, 2)}
+//     `;
 
-    const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
+//     const url = "https://aiworkshopapi.flexinfra.com.my/v1/chat/completions";
 
-    const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
-    };
+//     const headers = {
+//         "Content-Type": "application/json",
+//         "Authorization": `Bearer ${import.meta.env.VITE_FLEXTOKEN_API_KEY}`
+//     };
 
-    const systemPrompt = `
-    ${dashboardInsightsSystemInstruction}
-    IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting like \`\`\`json.
-    ${JSON.stringify(dashboardInsightsSchema)}
-    `;
+//     const systemPrompt = `
+//     ${dashboardInsightsSystemInstruction}
+//     IMPORTANT: You must return the response strictly as a JSON object that matches the following schema. Do not include markdown formatting like \`\`\`json.
+//     ${JSON.stringify(dashboardInsightsSchema)}
+//     `;
 
-    const data = {
-        model: "qwen2.5",
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt }
-        ],
-        max_completion_tokens: 2000, // Increased to handle deeply nested schemas
-        temperature: 0.2, // Kept at 0.2 to match your original configuration
-        top_p: 0.9,
-    };
+//     const data = {
+//         model: "qwen2.5",
+//         messages: [
+//             { role: "system", content: systemPrompt },
+//             { role: "user", content: prompt }
+//         ],
+//         max_completion_tokens: 2000, // Increased to handle deeply nested schemas
+//         temperature: 0.2, // Kept at 0.2 to match your original configuration
+//         top_p: 0.9,
+//     };
 
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(data)
-        });
+//     try {
+//         const response = await fetch(url, {
+//             method: "POST",
+//             headers,
+//             body: JSON.stringify(data)
+//         });
 
-        if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
-        }
+//         if (!response.ok) {
+//             throw new Error(`API request failed: ${response.status}`);
+//         }
 
-        const responseData = await response.json();
-        let content = responseData.choices[0].message.content;
+//         const responseData = await response.json();
+//         let content = responseData.choices[0].message.content;
 
-        // --- ROBUST JSON EXTRACTION ---
-        // Strip away any conversational filler or markdown that Qwen might occasionally append
-        const jsonStart = content.indexOf('{');
-        const jsonEnd = content.lastIndexOf('}');
+//         // --- ROBUST JSON EXTRACTION ---
+//         // Strip away any conversational filler or markdown that Qwen might occasionally append
+//         const jsonStart = content.indexOf('{');
+//         const jsonEnd = content.lastIndexOf('}');
 
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            content = content.substring(jsonStart, jsonEnd + 1);
-        }
+//         if (jsonStart !== -1 && jsonEnd !== -1) {
+//             content = content.substring(jsonStart, jsonEnd + 1);
+//         }
 
-        return JSON.parse(content);
-    } catch (error) {
-        console.error("Error generating Dashboard Insights:", error);
-        throw error;
-    }
-}
+//         return JSON.parse(content);
+//     } catch (error) {
+//         console.error("Error generating Dashboard Insights:", error);
+//         throw error;
+//     }
+// }
 
 // ==========================================
 // 4. COMPLEX DASHBOARD INSIGHTS (Powered by Gemini)
