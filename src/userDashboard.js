@@ -209,12 +209,6 @@ function setupEventListeners() {
             updateDashboard();
         }
     });
-
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        sessionStorage.removeItem('isUserAuthenticated');
-        sessionStorage.removeItem('userID');
-        window.location.href = 'index.html';
-    });
 }
 
 async function loadAIInsights() {
